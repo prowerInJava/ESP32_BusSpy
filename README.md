@@ -3,7 +3,7 @@
 ESP32-S3 + MCP2518FD 自制的多总线分析与仿真工具，**仿 CANoe / TSMaster**：
 单通道 CAN-FD + CAN 2.0 预留通道 + 以太网侧信号。
 
-> **当前不为测试框架服务**，是一个独立工具。如何接入 `platform_auto_test` 是以后的事。
+> **当前是独立工具**，不依赖任何专用测试框架。
 
 详细设计见 [`docs/DESIGN.md`](docs/DESIGN.md)。
 
@@ -20,7 +20,7 @@ ESP32-S3 + MCP2518FD 自制的多总线分析与仿真工具，**仿 CANoe / TSM
 
 ## 快速开始（不需要任何硬件）
 
-在 `platform_auto_test_tools` 目录下：
+在可导入 `BusSpyTool` 包的目录下：
 
 ```bash
 pip install ttkbootstrap cantools pyserial
@@ -30,11 +30,11 @@ python -m BusSpyTool.tools.uitest --seconds 8 # UI 冒烟，自动连模拟设�
 python -m BusSpyTool.app                      # 开界面，连接方式选「模拟设备」
 ```
 
-加载真实 DBC 看完整效果：
+加载你有权限使用的 DBC 看完整效果：
 
 ```bash
 python -m BusSpyTool.tools.uitest --seconds 10 --tab 1 --autograph 6 \
-    --dbc "D:/SDB/30T/26R2/DBC/ZSDB226200_DX1H_A0_G_High_BC_CANFD1_V1.dbc"
+    --dbc "/path/to/your/sanitized-test.dbc"
 ```
 
 `--autograph` 会自动往波形页加曲线，`--shot out.png` 可截图。
@@ -93,7 +93,7 @@ BusSpyTool/
 | 主控 | ESP32-S3 N16R8 | **Octal PSRAM 占用 GPIO 33–37**，引脚分配要避开 |
 | CAN-FD | MCP2518FD + 收发器 | **晶振必须 40 MHz**，20 MHz 算不出 8 Mbps |
 | CAN 2.0 | SN65HVD230 | 接内置 TWAI，预留通道 |
-| 以太网 | W5500 | **专用于被测网络**（接 ADCU），不接上位机 |
+| 以太网 | W5500 | **专用于被测网络**（接被测 ECU），不接上位机 |
 
 上位机连接走 **USB CDC**（S3 原生 USB-OTG 2.0 Full-Speed，12 Mbps）。
 

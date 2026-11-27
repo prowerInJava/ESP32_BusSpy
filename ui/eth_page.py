@@ -2,11 +2,11 @@
 # -*- coding: utf-8 -*-
 """
 @File         :eth_page.py
-@Description  :以太网页 —— ESP32 经 W5500 与 ADCU 直接收发以太网信号
+@Description  :以太网页 —— ESP32 经 W5500 与被测 ECU 直接收发以太网信号
 
 定位要分清，这里**不是**上位机与设备之间的管理链路：
 
-    电脑 --USB CDC--> ESP32 --W5500--> ADCU 被测以太网
+    电脑 --USB CDC--> ESP32 --W5500--> 被测 ECU 网络
          (BSTP 管理)         (本页管的就是这一段)
 
 W5500 专用于被测网络，上位机走 USB，两者互不干扰。设备在被测网段上
@@ -31,7 +31,7 @@ class EthPage(tb.Frame):
     def _build(self):
         notice = tb.Label(
             self, bootstyle="warning",
-            text=("W5500 专用于被测以太网（接 ADCU）。上位机连接走 USB CDC，"
+            text=("W5500 专用于被测以太网（接被测 ECU）。上位机连接走 USB CDC，"
                   "两条网络互不干扰。\n当前固件未实现本页功能，界面与流程先行。"))
         notice.pack(fill=X, pady=(0, 8), anchor=W)
 

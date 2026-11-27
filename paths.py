@@ -8,7 +8,7 @@
 用 os.path.dirname(__file__) 往上数层级——挪一次文件就会错一次。
 统一从这里取，并在这里处理 PyInstaller 打包后的 sys._MEIPASS。
 
-与 VehicleSimulate/paths.py 同构，坑也一样（见 writable_dir / icon_png_file）。
+沿用桌面应用常见的资源路径处理方式（见 writable_dir / icon_png_file）。
 """
 import os
 import sys

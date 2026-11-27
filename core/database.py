@@ -4,18 +4,13 @@
 @File         :database.py
 @Description  :CAN 数据库（DBC / ARXML）运行时加载与信号编解码
 
-这一层是本工具与 platform_auto_test 框架后端的**根本区别**：
+这一层是本工具与离线生成型测试框架的**根本区别**：
 
-  框架后端走 inter_sdk/data/<平台>/<版本>/can_lin_fr_cls/*.py —— 那是
-  arxml_tool 离线生成的预编译 Python 类（单平台 80 万行），运行时只 import，
+  这类框架后端使用离线生成的预编译 Python 类，运行时只 import，
   不解析 arxml。
 
   本工具要像 TSMaster / CANoe 一样**运行时加载任意 DBC / ARXML**，
   所以解析和解码都在运行时路径上。用 cantools 作对象模型与编解码。
-
-不复用 inter_sdk/tools/arxml_tool 的原因：那套的用途是「把 arxml 解析成 py
-库文件」（代码生成器，非运行时数据库），且硬依赖主仓库 inter_sdk.*，
-其 autosarfactory.py 有 28 万行，拖进本仓库不现实。
 
 无数据库时整个工具仍可用 —— 纯 raw 收发，Trace 只显示 hex。
 """

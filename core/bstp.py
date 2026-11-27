@@ -5,12 +5,12 @@
 @Description  :BSTP v1 (Bus Spy Tool Protocol) 编解码
 
 与 ESP32-BusSpyTool 固件的线上格式，规格见
-platform_auto_test/docs/busspytool_design.md 第 2.3 节。
+docs/DESIGN.md 第 2.3 节。
 
-设计要点（相对同星 IniMap 的 UDP 协议修掉的几处）：
+设计要点（相对旧版 UDP 协议的改进）：
   - 12 字节定长头带 magic + version + msg_type，不再靠包长度裸分发
-  - 一个 UDP 包可装多帧（批量），8 字节帧仅占 24 字节而非同星的 80
-  - 帧记录的 len 是**实际字节数**，不是 DLC code（同星那个极易误解析）
+  - 一个 UDP 包可装多帧（批量），减少短帧传输开销
+  - 帧记录的 len 是**实际字节数**，不是 DLC code
   - seq 可做请求/响应配对与丢包检测
 
 全协议小端：ESP32-S3 与 x86_64 都是小端，零字节序转换。
@@ -317,8 +317,8 @@ def pack_frames(frames: List[Frame], msg_type: int = MsgType.TX_FRAME,
                 seq: int = 0) -> List[Packet]:
     """把帧列表按 MTU 切成多个批量包。
 
-    批量是本协议相对同星最大的收益：8 字节帧 @500k 满载约 4000 帧/s，
-    同星一帧一包是 4000 pps，批量后约 67 pps —— 包率降到 1/60。
+    批量可显著降低高负载下的包率：8 字节帧 @500k 满载约 4000 帧/s，
+    批量后约 67 pps。
     带宽只省 ~4.8 倍，但每个 UDP 包在 lwIP + W5500 SPI 上都有固定开销，
     包率才是真瓶颈。
     """

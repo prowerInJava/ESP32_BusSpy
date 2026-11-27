@@ -4,7 +4,7 @@
 @File         :selftest.py
 @Description  :core 层自测，不需要硬件
 
-跑法（在 platform_auto_test_tools 目录下）：
+跑法（在可导入 `BusSpyTool` 包的目录下）：
     python -m BusSpyTool.tools.selftest
 
 覆盖 BSTP 编解码、批量切包、USB 流式重同步、DLC 映射、模拟设备。
@@ -247,7 +247,7 @@ def test_project():
         project = Project(name="冒烟")
         project.path = os.path.join(tmp, "p.bsp")
         project.databases = [{"path": db_path, "channel": 0}]
-        project.transmit = [{"name": "写 VIN", "chn": 0, "id": "0x7E0",
+        project.transmit = [{"name": "测试请求", "chn": 0, "id": "0x7E0",
                              "fd": True, "brs": True,
                              "data": "02 10 03", "period_ms": 0}]
         project.watch = [{"message": "M", "signal": "S"}]
@@ -264,7 +264,7 @@ def test_project():
               os.path.normcase(back.databases[0]["path"]) ==
               os.path.normcase(db_path), back.databases[0]["path"])
         check("transmit round-trip",
-              back.transmit[0]["name"] == "写 VIN", str(back.transmit[0]))
+              back.transmit[0]["name"] == "测试请求", str(back.transmit[0]))
         check("watch round-trip", back.watch == project.watch)
         check("loaded project is clean", back.dirty is False)
 

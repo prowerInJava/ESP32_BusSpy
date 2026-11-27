@@ -9,7 +9,7 @@
   - 高帧率下的渲染回归（模拟器默认 400 帧/秒）
   - 出截图
 
-跑法（在 platform_auto_test_tools 目录下）：
+跑法（在可导入 `BusSpyTool` 包的目录下）：
     python -m BusSpyTool.tools.uitest                 跑 5 秒后自动退出
     python -m BusSpyTool.tools.uitest --seconds 10
     python -m BusSpyTool.tools.uitest --shot out.png  跑完截图
