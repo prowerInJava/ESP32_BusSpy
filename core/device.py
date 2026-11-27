@@ -11,7 +11,7 @@
 通道模型（见 bstp.Chn）：
     0  CANFD   MCP2518FD，单通道 CAN-FD / CAN 2.0
     1  TWAI    ESP32-S3 内置，CAN 2.0 预留通道
-    2  ETH     以太网侧信号（裸 UDP 帧 / SOME/IP），经 W5500 与 ADCU 直接收发
+    2  ETH     以太网侧信号（裸 UDP 帧 / SOME/IP），经 W5500 与被测 ECU 直接收发
 
 时间戳一律用帧里的 ts_us（固件侧 MCP2518FD 硬件 TBC），**不用上位机收包时刻** ——
 所以即使链路走 Wi-Fi 有抖动，时序判定依然可信。

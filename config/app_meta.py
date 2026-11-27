@@ -16,8 +16,8 @@
 
 APP_NAME = "BusSpyTool"
 DEVICE_NAME = "ESP32-BusSpyTool"
-COMPANY = "Qianli"
-AUTHOR = "Qianli Platform Test"
+COMPANY = "BusSpy"
+AUTHOR = "Jacky Yin"
 DESCRIPTION = "单通道 CAN-FD / CAN 2.0 / 以太网 总线分析与仿真工具"
 
 # 版本管理启用前的占位。不要在别处硬编码版本字符串。

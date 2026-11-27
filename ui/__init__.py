@@ -3,8 +3,7 @@
 """
 界面层（ttkbootstrap），只调用 core，不直接做 IO。
 
-这里的工具函数都是 VehicleSimulate / McuVarTool 踩出来的跨平台坑，
-照搬其做法，注释保留「为什么」——这些行为在两个平台上不对称，
+这里的工具函数处理 Windows 与 Linux 间不对称的平台行为，
 改之前先看注释。
 """
 import os
@@ -15,7 +14,7 @@ from BusSpyTool import paths
 from BusSpyTool.utils.logger import logger
 
 
-def set_app_user_model_id(app_id="qianli.BusSpyTool"):
+def set_app_user_model_id(app_id="busspy.BusSpyTool"):
     """给进程设置显式 AppUserModelID，否则 Windows 任务栏图标是空白的。
 
     任务栏按 AppUserModelID 分组并取图标，不认窗口的 wm_iconbitmap。不设的话

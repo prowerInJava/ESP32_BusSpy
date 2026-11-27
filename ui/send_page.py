@@ -24,7 +24,7 @@ from BusSpyTool.ui.trace_page import CHN_NAMES
 class SendEntry:
     """发送列表里的一行。slot_id 非 None 表示周期已在固件上跑着。
 
-    name 是用户给这条的业务名字（「写 VIN」「唤醒帧」「刷 CCP」）——
+    name 是用户给这条发送项起的名字（例如「测试请求」「唤醒帧」）——
     工具不认识这些业务含义，它只负责把这条报文按配置发出去。
     """
 

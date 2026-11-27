@@ -3,7 +3,7 @@
 """工程文件端到端验证：起界面 -> 配置 -> 存盘 -> 新建清空 -> 读回 -> 比对。
 
 这个必须起真窗口，因为 to_config/from_config 都挂在页面上。
-跑法（platform_auto_test_tools 目录下）：
+跑法（在可导入 `BusSpyTool` 包的目录下）：
     python -m BusSpyTool.tools.projecttest <dbc路径>
 """
 import os
@@ -21,11 +21,11 @@ def main(argv=None):
         print(f"找不到 {dbc}")
         return 2
 
-    from BusSpyTool.ui import enable_per_monitor_dpi
+    from ..ui import enable_per_monitor_dpi
     enable_per_monitor_dpi()
-    from BusSpyTool.core.project import Project
-    from BusSpyTool.ui.main_window import MainWindow
-    from BusSpyTool.ui.send_page import SendEntry
+    from ..core.project import Project
+    from ..ui.main_window import MainWindow
+    from ..ui.send_page import SendEntry
 
     failures = []
 
@@ -47,7 +47,7 @@ def main(argv=None):
 
         send = window._pages["send"]
         entry = SendEntry.from_config(
-            {"name": "写 VIN", "chn": 0, "id": "0x7E0", "fd": True,
+            {"name": "测试请求", "chn": 0, "id": "0x7E0", "fd": True,
              "brs": True, "data": "02 10 03", "period_ms": 0})
         iid = send.tree.insert("", "end", values=send._values(entry))
         send.entries[iid] = entry
@@ -65,7 +65,15 @@ def main(argv=None):
         window._pages["signal"]._add_items(picks[:2])
         check("波形曲线", len(window._pages["graph"].series) == len(picks),
               str(len(window._pages["graph"].series)))
-        check("监控信号", len(window._pages["signal"].items) == 2)
+        expected_watch = {
+            (info.frame_id, info.is_extended, signal.name)
+            for info, signal in picks[:2]
+        }
+        actual_watch = {
+            item.key for item in window._pages["signal"].items.values()
+        }
+        check("监控信号", actual_watch == expected_watch,
+              f"期望 {len(expected_watch)}，实际 {len(actual_watch)}")
 
         window._pages["trace"].mode.set("scroll")
         window._pages["trace"].filter_var.set("123")
@@ -99,7 +107,7 @@ def main(argv=None):
             check("读回发送项", len(send.entries) == saved_send,
                   f"{len(send.entries)} vs {saved_send}")
             check("读回发送项名称",
-                  any(e.name == "写 VIN" for e in send.entries.values()),
+                  any(e.name == "测试请求" for e in send.entries.values()),
                   str([e.name for e in send.entries.values()]))
             check("读回曲线", len(window._pages["graph"].series) == saved_graph,
                   f"{len(window._pages['graph'].series)} vs {saved_graph}")
