@@ -7,7 +7,7 @@
 >
 > 另一种树莓派 + SocketCAN 方案尚未实现；本文描述 MCU 固件路线，两者无代码共用。
 
-## 当前状态（2026-11-27）
+## 当前状态（2026-11-28）
 
 | 部分 | 状态 |
 |---|---|
@@ -18,7 +18,7 @@
 | DBC / ARXML 运行时加载 | ✅ 已实现（`core/database.py`，基于 cantools） |
 | 上位机 GUI | ✅ 已实现，Windows / Linux 双平台实测通过 |
 | 命令行模式 | ✅ 已实现（`cli.py`） |
-| **ESP32 固件** | ❌ **尚未开始** |
+| **ESP32 固件** | 🧪 RGB 常亮验证工程源码已建立（`demo/fireware/`）；尚未完成编译/烧录验证，BSTP 主固件未开始 |
 | 以太网侧信号收发 | ❌ 界面与流程先行，固件未实现 |
 | **工程文件（打开即用）** | ❌ **最大缺口**，配置全都不持久化（见 5.4） |
 
@@ -34,7 +34,7 @@
 |---|---|
 | 设备/项目全名 | `ESP32-BusSpyTool` |
 | 项目根 | `BusSpyTool/` |
-| 固件 | `BusSpyTool/firmware/`（ESP-IDF，待实现） |
+| 固件 | `demo/fireware/`（ESP-IDF RGB 验证工程）；产品固件待实现 |
 | GUI 入口 | `BusSpyTool/app.py` |
 | CLI 入口 | `BusSpyTool/cli.py`，命令 `busspy` |
 | 协议名 | **BSTP** v1 = **B**us **S**py **T**ool **P**rotocol |
@@ -55,7 +55,7 @@ python -m BusSpyTool.tools.uitest --seconds 8 # UI 冒烟，无需硬件
 |---|---|
 | ESP32-S3 能做单通道 CAN-FD 工具吗 | ✅ 能。MCP2518FD over SPI，8 Mbps 数据段可达 |
 | TWAI 作 CAN 2.0 预留通道 | ✅ 合理。S3 内置 1 个 TWAI，**仅 CAN 2.0B / ≤1 Mbps，无 FD** |
-| 怎么接上位机 | ✅ **USB CDC 为主**。S3 原生 USB-OTG，免配 IP、低延迟、不占 W5500 |
+| 怎么接上位机 | ✅ **USB CDC 为主**。S3 原生 USB 可枚举为虚拟串口，免配 IP、不占 W5500 |
 | ESP32-S3 能用有线以太网吗 | ⚠️ S3 **无内置 EMAC**，必须外挂 SPI 芯片（W5500）。**该口专用于被测网络** |
 | 以太网拿来干什么 | ESP32 作被测网段上的**独立节点**，与被测 ECU 直接收发裸 UDP / SOME/IP 信号 |
 | 上位机能解析 DBC / ARXML 吗 | ✅ 运行时解析（cantools），不是预生成类 |
@@ -71,7 +71,7 @@ python -m BusSpyTool.tools.uitest --seconds 8 # UI 冒烟，无需硬件
 | 数据库 | **运行时加载 DBC / ARXML**（cantools） | 与框架的「离线生成 Python 类」完全不同路，见 5.3 |
 | SOME/IP | 固件侧**本期不做**，先做裸 UDP 帧 | 界面与流程先行 |
 | 目标平台 | 无 FlexRay 的区域架构（如 `PlatformA`） | 含 FlexRay 的旧平台不在本期范围 |
-| 固件开发 | **只在 Linux** | ESP-IDF 工具链；Windows 串口烧录坑多 |
+| 固件开发 | **ESP-IDF（当前在 macOS 配置）** | 烧录/调试使用 USB Serial/JTAG 或 USB-UART 串口 |
 | 上位机 | **Python + ttkbootstrap**，Windows / Linux 双平台 |
 | 数据库来源 | 用户提供且有权使用的测试库（ARXML / DBC），不随仓库分发 |
 
@@ -411,18 +411,20 @@ typedef struct __attribute__((packed)) {
 
 ### 3.1 上位机连接：USB CDC 为主
 
-ESP32-S3 有**原生 USB-OTG**，做 CDC-ACM（虚拟串口）即可承载 BSTP。这是默认连接方式：
+ESP32-S3 同时提供通用 USB-OTG 和固定功能的 USB Serial/JTAG 控制器。USB Serial/JTAG 可枚举为 CDC-ACM 虚拟串口，esptool 也可通过它进入下载模式；实际应用的 BSTP 链路可使用 USB CDC。这些串口通信不等同于 USB 大容量存储：
 
 | | 规格 | 说明 |
 |---|---|---|
 | USB 版本 | **USB 2.0 Full-Speed（12 Mbps）** | **不是 High-Speed，更不是 USB 3.0** —— S3 的 USB 外设就是 FS |
-| CDC 实测有效带宽 | ~500–900 KB/s | 8 字节帧在 BSTP 上占 24 字节 → 理论 2 万帧/s 以上，远超 CAN 物理层上限 |
+| CDC 目标有效带宽 | ~500–900 KB/s | 8 字节帧在 BSTP 上占 24 字节 → 理论 2 万帧/s 以上，远超 CAN 物理层上限；尚未在本板实测 |
 | 延迟 | 低且稳定 | USB 层自带重传，无网络抖动、无丢包 |
 | 配置 | 免配 IP | Windows 认作 COM 口，Linux 为 `/dev/ttyACM*`，**两边都原生支持，不用装驱动** |
 | 供电 | 同一根线 | 调试时不用额外电源 |
 
 **选 CDC-ACM 而不是 USB-ECM / RNDIS**：后者能让 USB 变成网卡、BSTP 零改动跑 UDP，
 但 ECM 在 Windows 上要装驱动、RNDIS 在 Linux 上有坑，跨平台一致性差。
+
+本板实测通过 USB Serial/JTAG 用 esptool 读取 16 MB 闪存：默认 115200 设置下约 25 分钟；提高到 460800 时出现串口数据错误。此结果反映闪存备份命令，不代表应用运行时 CDC 吞吐。
 
 代价：**CDC 是字节流，没有包边界**。好在 BSTP 头自带 magic + payload_len，
 可以直接做流式重同步（`core/transport.py:SerialTransport._extract`），
@@ -669,9 +671,9 @@ BSTP 刻意**不设**日志标志字段——
 
 **两件事的平台约束完全不同，别混为一谈：**
 
-| 场景 | Windows | Linux | 说明 |
+| 场景 | Windows | Linux / macOS | 说明 |
 |---|---|---|---|
-| **固件开发 + 烧录** | ❌ 不做 | ✅ **只在 Linux** | ESP-IDF 工具链 + esptool。Windows 下 CH340/CP2102 驱动、USB-Serial-JTAG 的 COM 枚举、esptool 的 DTR/RTS 自动复位序列都不稳 |
+| **固件开发 + 烧录** | ❌ 不作为主要开发环境 | ESP-IDF + esptool（当前在 macOS 配置，尚未完成验证） | 烧录使用 USB Serial/JTAG 或 USB-UART 串口 |
 | **上位机（GUI + CLI）** | ✅ 实测通过 | ✅ 实测通过 | 连设备是 USB CDC 或 UDP，与 OS 无关 |
 
 实测记录：
@@ -1066,7 +1068,9 @@ SD 需要多播 `224.244.224.245:30490`（lwIP 的 IGMP 支持，W5500 可用）
 | **H4** GUI | Trace / 波形 / 发送 / 信号 / 统计 / 以太网 / 日志 | ✅ Windows 300 帧/s、Linux 360 帧/s 实测流畅 |
 | **H5** CLI | `cli.py` | ✅ 只 import core，无 X 机器可用 |
 
-### 待做：固件（P 阶段，**尚未开始**）
+### 固件（P 阶段；主功能待做）
+
+已建立一个独立的 RGB 常亮验证工程（`demo/fireware/`），默认控制板载 `RGB@IO48` WS2812；它不包含 BSTP、Wi-Fi 配网或总线功能，且尚未完成编译/烧录验证。以下 P 阶段是产品固件工作，不包含该验证工程：
 
 | 阶段 | 内容 | 验收判据 |
 |---|---|---|
@@ -1143,7 +1147,7 @@ SD 需要多播 `224.244.224.245:30490`（lwIP 的 IGMP 支持，W5500 可用）
 | UDP 协议 | **自有 BSTP v1**，带 magic / 版本 / 序列号 / 批量帧 |
 | 数据库 | **运行时**加载 DBC / ARXML（cantools），非预生成类 |
 | SOME/IP | 固件侧本期不做，先做裸 UDP 帧 |
-| 固件开发 | **只在 Linux** |
+| 固件开发 | **ESP-IDF；当前在 macOS 配置** |
 | 上位机 | **Python + ttkbootstrap**，Windows / Linux 双平台实测通过 |
 | 版本号 | **暂不启用**；启用后上位机与固件**分开管理** |
 | 目标平台 | 无 FlexRay 的区域架构；含 FlexRay 的平台不在本期范围 |

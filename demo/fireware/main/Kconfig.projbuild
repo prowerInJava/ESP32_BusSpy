@@ -1,0 +1,13 @@
+menu "BusSpy RGB demo"
+
+config RGB_LED_GPIO
+    int "Onboard WS2812 GPIO"
+    range 0 48
+    default 48
+
+config RGB_LED_BRIGHTNESS
+    int "RGB LED brightness (0-255)"
+    range 1 255
+    default 12
+
+endmenu
