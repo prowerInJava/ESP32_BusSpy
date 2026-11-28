@@ -479,6 +479,7 @@ PSRAM / flash 走的是内部 SPI0/SPI1，**不占用** SPI2/SPI3，所以 3.5 �
 
 原型接线中 MCP2518FD 使用 GPIO 9–13；新增的 0.96 英寸 I2C OLED 使用 GPIO 8（SCL）和 GPIO 7（SDA），
 与 CAN-FD 的 SPI 信号不冲突。显示屏的针脚识别、供电注意事项和接线图见
+[ESP32-S3、MCP2518FD 与 OLED 硬件针脚说明](./HARDWARE_PINOUT.md)和
 [OLED 接线说明](./OLED接线说明.md)。屏幕控制器与当前 I2C 地址仍需上电扫描/核对后再确定固件驱动。
 
 ### 3.5 SPI 资源分配
