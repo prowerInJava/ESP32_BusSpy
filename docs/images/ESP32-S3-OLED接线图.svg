@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="920" height="500" viewBox="0 0 920 500" role="img" aria-labelledby="title description">
+  <title id="title">ESP32-S3 to 0.96-inch OLED I2C wiring</title>
+  <desc id="description">Connect OLED GND to ESP32-S3 GND, VCC to 3V3, SCL to GPIO 8, and SDA to GPIO 7.</desc>
+  <style>
+    text { font-family: Arial, sans-serif; fill: #172033; }
+    .title { font-size: 25px; font-weight: 700; }
+    .subtitle { font-size: 15px; fill: #526078; }
+    .head { font-size: 18px; font-weight: 700; }
+    .pin { font-size: 16px; font-weight: 600; }
+    .note { font-size: 14px; fill: #526078; }
+    .card { fill: #f7f9fc; stroke: #b8c5d6; stroke-width: 2; }
+    .header { fill: #e9eef6; }
+    .wire { fill: none; stroke-width: 5; stroke-linecap: round; }
+  </style>
+
+  <rect width="920" height="500" fill="#ffffff"/>
+  <text x="40" y="46" class="title">ESP32-S3 + 0.96" I2C OLED</text>
+  <text x="40" y="73" class="subtitle">Prototype wiring — power the display from 3.3 V</text>
+
+  <rect x="55" y="112" width="345" height="304" rx="18" class="card"/>
+  <rect x="55" y="112" width="345" height="58" rx="18" class="header"/>
+  <path d="M55 152 H400" stroke="#b8c5d6" stroke-width="2"/>
+  <text x="82" y="149" class="head">ESP32-S3</text>
+  <text x="83" y="206" class="pin">GND</text>
+  <text x="83" y="266" class="pin">3V3</text>
+  <text x="83" y="326" class="pin">GPIO 8  (SCL)</text>
+  <text x="83" y="386" class="pin">GPIO 7  (SDA)</text>
+  <circle cx="370" cy="200" r="8" fill="#26354a"/>
+  <circle cx="370" cy="260" r="8" fill="#e64b3c"/>
+  <circle cx="370" cy="320" r="8" fill="#3578d4"/>
+  <circle cx="370" cy="380" r="8" fill="#23966a"/>
+
+  <path d="M378 200 H550" class="wire" stroke="#26354a"/>
+  <path d="M378 260 H550" class="wire" stroke="#e64b3c"/>
+  <path d="M378 320 H550" class="wire" stroke="#3578d4"/>
+  <path d="M378 380 H550" class="wire" stroke="#23966a"/>
+
+  <rect x="550" y="112" width="315" height="304" rx="18" class="card"/>
+  <rect x="550" y="112" width="315" height="58" rx="18" class="header"/>
+  <path d="M550 152 H865" stroke="#b8c5d6" stroke-width="2"/>
+  <text x="577" y="149" class="head">OLED module</text>
+  <text x="603" y="206" class="pin">GND</text>
+  <text x="603" y="266" class="pin">VCC</text>
+  <text x="603" y="326" class="pin">SCL</text>
+  <text x="603" y="386" class="pin">SDA</text>
+  <circle cx="565" cy="200" r="8" fill="#26354a"/>
+  <circle cx="565" cy="260" r="8" fill="#e64b3c"/>
+  <circle cx="565" cy="320" r="8" fill="#3578d4"/>
+  <circle cx="565" cy="380" r="8" fill="#23966a"/>
+
+  <text x="55" y="455" class="note">Existing MCP2518FD connections use GPIO 9–13; they remain separate from this I2C wiring.</text>
+  <text x="55" y="478" class="note">Use the pin labels on your board/module. Do not apply 5 V to OLED VCC unless its rating is confirmed.</text>
+</svg>
