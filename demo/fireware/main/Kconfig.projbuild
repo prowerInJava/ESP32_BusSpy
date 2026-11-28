@@ -1,4 +1,10 @@
-menu "BusSpy RGB demo"
+menu "BusSpy OLED demo"
+
+config WIFI_AP_PASSWORD
+    string "Wi-Fi setup hotspot password (8-63 characters)"
+    default "88888888"
+    help
+        Set a WPA2 passphrase for the BusSpy-S3 setup hotspot.
 
 config RGB_LED_GPIO
     int "Onboard WS2812 GPIO"

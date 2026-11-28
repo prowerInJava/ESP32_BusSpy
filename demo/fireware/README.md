@@ -1,9 +1,29 @@
-# RGB 常亮验证固件
+# OLED / Wi-Fi / Bluetooth demo
 
-这是一个最小 ESP-IDF 程序：启动后把方形板载 WS2812 设置为低亮度绿色，不启用 Wi-Fi，也不周期闪烁。刷入后会替换当前网页配网固件；程序不主动擦除 NVS。默认 GPIO 为 48、亮度为 12/255，可在 `idf.py menuconfig` 的 **BusSpy RGB demo** 菜单中调整。
+This ESP-IDF firmware targets the ESP32-S3 board and the 0.96-inch, 128x64
+I2C OLED wired as shown in [the wiring guide](../../docs/OLED接线说明.md):
 
-板卡引脚图和实物照片确认方形板载 WS2812 标记为 `RGB@IO48`。旁边红、绿、蓝小灯是另外的状态灯，不由本程序控制。根据实测，红灯常亮、绿灯上电时闪烁、蓝灯在串口读闪存时闪烁；它们的确切电路功能尚未从原理图确认。
+- SDA: GPIO 7
+- SCL: GPIO 8
+- OLED I2C address: auto-detected at `0x3C` or `0x3D`
 
-建议使用 ESP-IDF 5.4.2。资料包教程以 ESP-IDF 4.4 为例，但本工程及组件组合尚未在 4.4 下验证。
+After reset, the OLED shows `正在加载中` while the Wi-Fi portal and Bluetooth
+Low Energy peripheral start. Three seconds later it shows `HelloWorld`,
+`WiFi: ONLINE/OFFLINE`, and `BT: ONLINE/OFFLINE`. Wi-Fi is ONLINE when a phone
+or computer joins the setup hotspot or the station connects to a router; BT
+is ONLINE while a BLE client is connected. The ESP32-S3 supports BLE, not
+Bluetooth Classic.
 
-代码编译、烧录、验证和恢复原固件的完整步骤见 [编译与烧录手顺](./BUILD_FLASH.md)。
+The firmware provides a WPA2-protected `BusSpy-S3` setup hotspot and the
+original page at **http://192.168.4.1/**. Use ESP-IDF `menuconfig` → **BusSpy
+OLED demo** → **Wi-Fi setup hotspot password** to set an 8–63 character
+passphrase before building. The page shows device status, scans for routers,
+saves router credentials, controls the onboard green LED, and can restart the
+device. Saved router credentials are stored in NVS; the firmware does not
+erase NVS or the full flash. NVS encryption/flash encryption is not enabled in
+this demo, so do not treat stored router credentials as protected at rest.
+
+The BLE peripheral `BusSpy-S3` remains connectable without pairing and exposes
+only the standard GAP/GATT services. Nearby BLE clients can connect, but there
+is no BusSpy data/control service. Recommended toolchain: ESP-IDF 5.4.2. Build
+and flash guidance is in [BUILD_FLASH.md](./BUILD_FLASH.md).

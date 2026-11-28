@@ -18,7 +18,7 @@
 | DBC / ARXML 运行时加载 | ✅ 已实现（`core/database.py`，基于 cantools） |
 | 上位机 GUI | ✅ 已实现，Windows / Linux 双平台实测通过 |
 | 命令行模式 | ✅ 已实现（`cli.py`） |
-| **ESP32 固件** | 🧪 当前为 RGB 验证程序；BSTP 通道 ID/驱动接口骨架已建立，MCP2518FD 驱动与 BSTP 主固件尚未实现 |
+| **ESP32 固件** | 🧪 当前为 OLED / Wi-Fi 配网页 / BLE 状态 demo；BSTP 通道 ID/驱动接口骨架已建立，MCP2518FD 驱动与 BSTP 主固件尚未实现 |
 | 以太网侧信号收发 | ❌ 界面与流程先行，固件未实现 |
 | **工程文件（打开即用）** | ❌ **最大缺口**，配置全都不持久化（见 5.4） |
 
@@ -34,7 +34,7 @@
 |---|---|
 | 设备/项目全名 | `ESP32-BusSpyTool` |
 | 项目根 | `BusSpyTool/` |
-| 固件 | `demo/fireware/`（ESP-IDF RGB 验证工程）；产品固件待实现 |
+| 固件 | `demo/fireware/`（ESP-IDF OLED / Wi-Fi 配网 / BLE 状态 demo）；产品固件待实现 |
 | GUI 入口 | `BusSpyTool/app.py` |
 | CLI 入口 | `BusSpyTool/cli.py`，命令 `busspy` |
 | 协议名 | **BSTP** v1 = **B**us **S**py **T**ool **P**rotocol |
@@ -1032,7 +1032,7 @@ SOME/IP 栈包含 SD、E2E、TCP/UDP 与多播；本工具当前不依赖或导�
 
 1. ESP32-S3 内存（512 KB SRAM + 8 MB PSRAM）与 W5500 吞吐（~10 Mbps）
    撑不住 SOME/IP 事件组的大流量通知。
-2. 固件当前仍是 RGB 验证程序；先完成 CAN-FD 1 主干（P0–P2），以太网应用层后续实现。
+2. 固件当前仍是 OLED / Wi-Fi 配网 / BLE 状态 demo；先完成 CAN-FD 1 主干（P0–P2），以太网应用层后续实现。
 3. SOME/IP 的价值在**协议栈行为的正确性测试**（构造畸形包、改 SD 时序、注入 E2E 错误），
    这些在 PC 上做更灵活；固件侧更适合做「稳定的仿真节点」而非「测试仪」。
 
@@ -1089,7 +1089,7 @@ SD 需要多播 `224.244.224.245:30490`（lwIP 的 IGMP 支持，W5500 可用）
 
 ### 固件（P 阶段；主功能待做）
 
-已建立一个独立的 RGB 常亮验证工程（`demo/fireware/`），默认控制板载 `RGB@IO48` WS2812；它不包含 BSTP、Wi-Fi 配网或总线功能。固件源码已加入固定 endpoint ID 和 CAN/Ethernet 驱动接口骨架，但尚无 CAN 控制器驱动。以下 P 阶段是产品固件工作，不包含 RGB 验证功能：
+已建立一个独立的 OLED / Wi-Fi 配网 / BLE 状态 demo（`demo/fireware/`），同时控制板载 `RGB@IO48` WS2812；它尚不包含 BSTP 或总线功能。固件源码已加入固定 endpoint ID 和 CAN/Ethernet 驱动接口骨架，但尚无 CAN 控制器驱动。以下 P 阶段是产品固件工作，不包含此 demo 功能：
 
 | 阶段 | 内容 | 验收判据 |
 |---|---|---|
