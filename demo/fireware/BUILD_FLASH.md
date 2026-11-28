@@ -7,8 +7,10 @@
 ## 1. 准备工具和连接
 
 1. 在 VS Code 的 ESP-IDF 扩展中安装并选择 **ESP-IDF 5.4.2**。本工程尚未在资料包教程中的 ESP-IDF 4.4 下验证。
-2. 用数据线连接板上标有 **USB** 的接口。macOS 上此原生 USB Serial/JTAG 串口通常显示为 `/dev/cu.usbmodem...`；不要选蓝牙串口，也不要把 USB 当成 U 盘使用。
-3. 确认原板全片备份存在：
+2. 当前 RGB 验证固件烧录/看日志时，连接板上标有 **USB** 的接口。macOS 上此原生 USB Serial/JTAG 串口通常显示为 `/dev/cu.usbmodem...`；不要选蓝牙串口，也不要把 USB 当成 U 盘使用。
+3. 板上另一个标为 **UART** 的接口经 USB-UART 桥连接芯片串口，可用于串口烧录和 UART 日志。它与 USB 口用途不同，但当前这份烧录手顺统一使用 **USB** 口。
+4. **USB OTG 什么时候用：**这份 RGB 固件不实现 USB OTG 应用功能，所以现在不需要为了它切换接口。后续固件启用原生 USB CDC（如 TinyUSB CDC-ACM）时，用原生 USB 口连接电脑，承载 BusSpy 与上位机之间的 BSTP 数据；若将设备配置为 USB Host，则用于连接兼容的 USB 外设。USB Serial/JTAG 是当前烧录/日志通道，不等同于应用层 USB CDC；它们共用原生 USB 引脚，应用 CDC 接管后不能同时依赖 USB Serial/JTAG，烧录和日志方式需按固件配置安排。
+5. 确认原板全片备份存在：
 
    ```text
    ~/Downloads/ESP32-S3-original-flash-20261128-0041.bin

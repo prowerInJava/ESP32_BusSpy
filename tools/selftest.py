@@ -17,7 +17,7 @@ import sys
 import time
 
 from BusSpyTool.core import bstp
-from BusSpyTool.core.bstp import Chn, Frame, MsgType, Packet, Stat
+from BusSpyTool.core.bstp import CHANNEL_NAMES, Chn, Frame, MsgType, Packet, Stat
 from BusSpyTool.core.transport import SerialTransport
 
 _failures = []
@@ -52,6 +52,30 @@ def test_header():
         check("bad magic rejected", True)
 
 
+def test_channel_ids():
+    print("stable channel IDs")
+    check("legacy CAN-FD ID preserved", Chn.CANFD == 0)
+    check("legacy TWAI ID preserved", Chn.TWAI == 1)
+    check("legacy ETH ID preserved", Chn.ETH == 2)
+    check("reserved CAN-FD ID appended", Chn.CANFD_2 == 3)
+    check("reserved classic CAN IDs appended",
+          (Chn.CAN_CLASSIC_2, Chn.CAN_CLASSIC_3) == (4, 5))
+    ids = (Chn.CANFD_1, Chn.CAN_CLASSIC_1, Chn.ETH,
+           Chn.CANFD_2, Chn.CAN_CLASSIC_2, Chn.CAN_CLASSIC_3)
+    check("all endpoint IDs are unique", len(set(ids)) == Chn.ENDPOINT_COUNT)
+    check("all endpoints have names", set(CHANNEL_NAMES) == set(ids))
+    reserved_ids = (Chn.CAN_CLASSIC_1, Chn.ETH, Chn.CANFD_2,
+                    Chn.CAN_CLASSIC_2, Chn.CAN_CLASSIC_3)
+    check("all deferred endpoints are visibly reserved",
+          all("预留" in CHANNEL_NAMES[channel_id]
+              for channel_id in reserved_ids))
+    from BusSpyTool.cli import CHN_ALIASES
+    check("CLI aliases target reserved endpoints",
+          CHN_ALIASES["canfd2"] == Chn.CANFD_2
+          and CHN_ALIASES["can2"] == Chn.CAN_CLASSIC_2
+          and CHN_ALIASES["can3"] == Chn.CAN_CLASSIC_3)
+
+
 def test_dlc():
     print("DLC mapping")
     check("len 8 -> dlc 8", bstp.len_to_dlc(8) == 8)
@@ -76,6 +100,9 @@ def test_frame():
         Frame(can_id=0x7FF, data=b"", ts_us=3),
         Frame(can_id=0x100, data=bytes(12), fd=True, tx=True, chn=Chn.TWAI),
         Frame(can_id=0x200, data=bytes(3), esi=True, rtr=True),
+        Frame(can_id=0x301, data=bytes(8), fd=True, chn=Chn.CANFD_2),
+        Frame(can_id=0x302, data=bytes(8), chn=Chn.CAN_CLASSIC_2),
+        Frame(can_id=0x303, data=bytes(8), chn=Chn.CAN_CLASSIC_3),
     ]
     for index, original in enumerate(cases):
         blob = original.encode()
@@ -298,7 +325,7 @@ def main():
     print("=" * 56)
     print("BusSpyTool core selftest")
     print("=" * 56)
-    for test in (test_header, test_dlc, test_frame, test_batch, test_stat,
+    for test in (test_header, test_channel_ids, test_dlc, test_frame, test_batch, test_stat,
                  test_cyc, test_serial_resync, test_filter_and_ctrl,
                  test_project, test_mock_device):
         test()

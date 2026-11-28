@@ -1,7 +1,7 @@
 # ESP32-BusSpyTool 设计方案
 
-> **ESP32-BusSpyTool** —— 用 ESP32-S3 N16R8 + MCP2518FD 自制的多总线分析与仿真工具：
-> 单通道 CAN-FD（MCP2518FD）+ CAN 2.0 预留通道（内置 TWAI）+ 以太网侧信号（W5500）。
+> **ESP32-BusSpyTool** —— 用 ESP32-S3 N16R8 + CAN 控制器构建的多总线分析与仿真工具：
+> 最终目标为 3 路经典 CAN + 2 路 CAN-FD + W5500；当前开发阶段先实现 CAN-FD 1，并为其余端点预留稳定接口。
 >
 > **定位：一个独立的仿 CANoe / TSMaster 工具，当前不依赖外部测试框架。**
 >
@@ -18,7 +18,7 @@
 | DBC / ARXML 运行时加载 | ✅ 已实现（`core/database.py`，基于 cantools） |
 | 上位机 GUI | ✅ 已实现，Windows / Linux 双平台实测通过 |
 | 命令行模式 | ✅ 已实现（`cli.py`） |
-| **ESP32 固件** | 🧪 RGB 常亮验证工程源码已建立（`demo/fireware/`）；尚未完成编译/烧录验证，BSTP 主固件未开始 |
+| **ESP32 固件** | 🧪 当前为 RGB 验证程序；BSTP 通道 ID/驱动接口骨架已建立，MCP2518FD 驱动与 BSTP 主固件尚未实现 |
 | 以太网侧信号收发 | ❌ 界面与流程先行，固件未实现 |
 | **工程文件（打开即用）** | ❌ **最大缺口**，配置全都不持久化（见 5.4） |
 
@@ -53,8 +53,8 @@ python -m BusSpyTool.tools.uitest --seconds 8 # UI 冒烟，无需硬件
 
 | 问题 | 结论 |
 |---|---|
-| ESP32-S3 能做单通道 CAN-FD 工具吗 | ✅ 能。MCP2518FD over SPI，8 Mbps 数据段可达 |
-| TWAI 作 CAN 2.0 预留通道 | ✅ 合理。S3 内置 1 个 TWAI，**仅 CAN 2.0B / ≤1 Mbps，无 FD** |
+| 当前阶段做什么 | 先实现 CAN-FD 1（MCP2518FD）；其余 4 路 CAN 和 W5500 先保留固定软件接口 |
+| 最终 CAN 目标怎么扩展 | 3 路经典 CAN + 2 路 CAN-FD；S3 内置 1 个 TWAI，另 4 路 CAN 需外部控制器；资源/吞吐待验证 |
 | 怎么接上位机 | ✅ **USB CDC 为主**。S3 原生 USB 可枚举为虚拟串口，免配 IP、不占 W5500 |
 | ESP32-S3 能用有线以太网吗 | ⚠️ S3 **无内置 EMAC**，必须外挂 SPI 芯片（W5500）。**该口专用于被测网络** |
 | 以太网拿来干什么 | ESP32 作被测网段上的**独立节点**，与被测 ECU 直接收发裸 UDP / SOME/IP 信号 |
@@ -335,7 +335,7 @@ PC → 设备                          设备 → PC
 typedef struct __attribute__((packed)) {
     uint64_t ts_us;        // 微秒时间戳。RX = MCP2518FD 硬件 TBC；TX = 实际发出时刻
     uint32_t can_id;       // [28:0] ID, [31] IDE 扩展帧, [30] RTR, [29] ERR
-    uint8_t  chn;          // 0 = MCP2518FD (CAN-FD), 1 = TWAI (CAN 2.0 预留)
+    uint8_t  chn;          // BSTP endpoint ID; 0-2 retain legacy meanings, 3-5 are appended
     uint8_t  len;          // *** 实际字节数 0..64，不是 DLC code ***
     uint8_t  flags;        // [0] FD  [1] BRS  [2] ESI  [3] dir(0=RX,1=TX)
     uint8_t  reserved;
@@ -441,9 +441,9 @@ ESP32-S3 同时提供通用 USB-OTG 和固定功能的 USB Serial/JTAG 控制器
 | DM9051 over SPI | ~10–20 Mbps | ¥20–35 | 备选，货源少些 |
 | ENC28J60 | 10 Mbps 半双工，实测 <5 Mbps | ¥10 | ❌ 不用，IDF 驱动有已知限制、多播支持差 |
 
-**关键：这个口不拿来接上位机。** S3 只有两个通用 SPI，MCP2518FD 占一个、W5500 占一个，
-所以**只能有一个以太网口** —— 把它留给被测网络（接被测 ECU 收发 SOME/IP / 裸 UDP 信号，见第 6 节），
-管理链路走 USB。两张网物理隔离，不用操心网段冲突、带宽竞争、多播串扰。
+**关键：这个口不拿来接上位机。** W5500 保留为被测网络口（接被测 ECU 收发 SOME/IP / 裸 UDP 信号，见第 6 节），
+管理链路走 USB。当前阶段只有一颗 MCP2518FD；最终五路 CAN 与 W5500 会竞争有限的 SPI 总线时隙，
+控制器分组及吞吐必须结合 V1.4 板级资料和验收负载验证，不能沿用单路原型的资源结论。
 
 ### 3.3 Wi-Fi：辅助用途
 
@@ -477,25 +477,26 @@ Wi-Fi 是 S3 内置的，不用也在硅片上。它不是主连接，但有几�
 
 PSRAM / flash 走的是内部 SPI0/SPI1，**不占用** SPI2/SPI3，所以 3.5 节的两路 SPI 分配依然成立。
 
-原型接线中 MCP2518FD 使用 GPIO 9–13；新增的 0.96 英寸 I2C OLED 使用 GPIO 8（SCL）和 GPIO 7（SDA），
+原型接线中 MCP2518FD 使用 GPIO 9–13；新增的新款 0.96 英寸 I2C OLED 使用 GPIO 8（SCL）和 GPIO 7（SDA），
 与 CAN-FD 的 SPI 信号不冲突。显示屏的针脚识别、供电注意事项和接线图见
 [ESP32-S3、MCP2518FD 与 OLED 硬件针脚说明](./HARDWARE_PINOUT.md)和
-[OLED 接线说明](./OLED接线说明.md)。屏幕控制器与当前 I2C 地址仍需上电扫描/核对后再确定固件驱动。
+[OLED 接线说明](./OLED接线说明.md)。新款资料标注 SSD1315，控制器兼容性与当前 I2C 地址仍需上电测试/扫描后确定固件配置。
 
-**后续扩展目标：双 CAN-FD + 尽可能保留 1 路经典 CAN。** 建议第二颗 MCP2518FD 与现有器件共用 SPI 信号、独立 CS/INT；经典 CAN 使用 ESP32-S3 唯一的内置 TWAI。候选引脚及双路 SPI 吞吐验证要求见
-[硬件针脚说明](./HARDWARE_PINOUT.md#面向双-can-fd-的后续预留方案)。这属于待验证的扩展规划，不代表第二路控制器或 TWAI 已接入。
+**当前范围：先实现 CAN-FD 1。最终目标仍为 3 路经典 CAN + 2 路 CAN-FD + W5500。** 上位机和固件已固定六个 BSTP endpoint ID，并提供 CAN 控制器与 Ethernet 分离的接口骨架。其余通道先保持 RESERVED；新增硬件时只实现驱动并绑定既有 ID。GPIO/SPI 的具体分配留待对照 2025-V1.4 板级资料核实，不把原型接线候选当产品针脚表。
 
 ### 3.5 SPI 资源分配
 
-ESP32-S3 可用通用 SPI 控制器 **2 个**（SPI2/GPSPI2、SPI3/GPSPI3），正好够：
+ESP32-S3 可用通用 SPI 控制器 **2 个**（SPI2/GPSPI2、SPI3/GPSPI3）。当前只规划单个 CAN-FD 控制器；最终目标涉及 4 个外部 CAN 控制器和 W5500，多个 SPI 外设需共享总线并独立片选/中断：
 
 ```
-SPI2 ──► MCP2518FD   (≤20 MHz，CAN-FD 控制器)
-SPI3 ──► W5500       (≤40 MHz，以太网)
-TWAI ──► SN65HVD230  (内置控制器，CAN 2.0 预留通道)
+SPI host(s) ──► MCP2518FD #1                 (当前阶段 CAN-FD 1)
+              ├─ CAN-FD #2 外部控制器      (预留)
+              ├─ CAN2.0B #2/#3 外部控制器  (预留)
+              └─ W5500                      (预留，被测网络)
+TWAI ─────────► CAN2.0B #1                  (预留)
 ```
 
-两路都要 DMA + 中断，CPU 压力集中在 SPI 事务。建议 **core 1 专跑 CAN，core 0 跑网络栈**（见 4.2）。
+图示只表达功能分工，不冻结 GPIO 或 SPI host 分组。共享 SPI 会串行化事务，最终方案必须压测双 FD、经典 CAN、W5500 与 USB 上传的组合负载；若无法满足目标，应调整主控/控制器架构，而不是重排已发布的 endpoint ID。
 
 ### 3.6 BOM（原型，免焊优先）
 
@@ -505,8 +506,8 @@ TWAI ──► SN65HVD230  (内置控制器，CAN 2.0 预留通道)
 | CAN-FD 控制器 | MCP2518FD 模块 | 1 | 已有。确认模块是否已带收发器 |
 | CAN-FD 收发器 | TJA1051T/3 或 MCP2562FD | 1 | 若模块未集成则需外加 |
 | 以太网 | W5500 模块 | 1 | **需增购**（3.1 节决策点） |
-| CAN 2.0 收发器 | SN65HVD230 模块 | 1 | TWAI 预留通道 |
-| 状态显示屏 | 0.96 英寸 I2C OLED（JMD0.96D-I） | 1 | 用户已有；3.3 V 供电，GPIO 8/7；控制器待确认 |
+| CAN 2.0 收发器 | SN65HVD230 模块 | 1 | 当前台架扩展验证用；最终 3 路需分别配置收发器 |
+| 状态显示屏 | 新款 0.96 英寸 I2C OLED（JMD0.96D-I） | 1 | 用户已有；3.3 V 供电，GPIO 8/7；新款资料标注 SSD1315，需实测兼容性 |
 | 终端电阻 | 120 Ω | 2 | 可跳线切换 |
 | 晶振 | MCP2518FD 模块自带 40 MHz | — | **必须 40 MHz**，20 MHz 算不出 8 Mbps |
 
@@ -540,8 +541,10 @@ BusSpyTool/firmware/
 │   ├── net_link.c/h           netif 抽象：esp_eth(W5500) / esp_wifi 二选一，BSTP 之下透明
 │   ├── mgmt.c/h               带外管理 + esp_https_ota（Wi-Fi 默认关，见 3.3）
 │   ├── bstp.c/h               BSTP v1 编解码 + 批量拆装包 + 聚合刷新（见 2.3）
-│   ├── canfd_mcp2518.c/h      SPI 驱动、位时序、FIFO、TBC 时间戳 64 位扩展
-│   ├── twai_legacy.c/h        内置 TWAI 预留通道（CAN 2.0）
+│   ├── busspy_interfaces.h/c  固定 endpoint ID、CAN 驱动接口、独立 Ethernet 数据报接口
+│   ├── canfd_mcp2518.c/h      CAN-FD 1 的 SPI 驱动、位时序、FIFO、TBC 时间戳扩展
+│   ├── can_classic_twai.c/h   CAN 2.0B 1 的 TWAI 驱动（预留）
+│   ├── can_external.c/h       CAN-FD 2 与 CAN 2.0B 2/3 的外部控制器适配（预留）
 │   ├── cyc_engine.c/h         周期发送调度器（本方案核心，CAN 与裸 UDP 帧共用）
 │   ├── e2e.c/h                crc8 / Profile 4 / 11 / G + rolling counter
 │   ├── eth_udp.c/h            arxml 定长裸 UDP 帧收发（见 6.3）
@@ -976,7 +979,9 @@ ui/main_window.py   文件菜单、标题栏脏标记、启动自动加载
 
 ```
 电脑(本工具) ──USB CDC──> ESP32 ──MCP2518FD──> CAN-FD 总线
-                            ├────TWAI───────> CAN 2.0 总线（预留）
+                            ├────TWAI───────> CAN2.0B #1（预留）
+                            ├─ CAN 控制器 ──> CAN2.0B #2/#3（预留）
+                            ├─ MCP2518FD ──> CAN-FD #2（预留）
                             └────W5500──────> 被测以太网 ── ECU
                                               ↑ 本章讲的是这一段
 ```
@@ -984,7 +989,7 @@ ui/main_window.py   文件菜单、标题栏脏标记、启动自动加载
 - **USB 是管理链路**（跑 BSTP），**W5500 是被测总线**，两者互不干扰。
 - ESP32 在被测网段上是一个**独立节点**，自己与被测 ECU 收发裸 UDP / SOME/IP 信号，
   **不依赖电脑转发**。
-- 只有一个 W5500（S3 的两个通用 SPI 一个给了 MCP2518FD），所以不拿它接上位机。
+- 产品目标保留一个 W5500 专用于被测网络，不拿它接上位机；其 SPI 与多路 CAN 控制器的共享方案需在板级设计阶段验证。
 
 **本期范围：裸 UDP 帧收发。SOME/IP 固件侧不做**（界面与流程先行，见 `ui/eth_page.py`）。
 
@@ -1022,7 +1027,7 @@ SOME/IP 栈包含 SD、E2E、TCP/UDP 与多播；本工具当前不依赖或导�
 
 1. ESP32-S3 内存（512 KB SRAM + 8 MB PSRAM）与 W5500 吞吐（~10 Mbps）
    撑不住 SOME/IP 事件组的大流量通知。
-2. 固件还没开始写，CAN-FD 主干（P0–P2）优先级远高于以太网应用层。
+2. 固件当前仍是 RGB 验证程序；先完成 CAN-FD 1 主干（P0–P2），以太网应用层后续实现。
 3. SOME/IP 的价值在**协议栈行为的正确性测试**（构造畸形包、改 SD 时序、注入 E2E 错误），
    这些在 PC 上做更灵活；固件侧更适合做「稳定的仿真节点」而非「测试仪」。
 
@@ -1079,24 +1084,24 @@ SD 需要多播 `224.244.224.245:30490`（lwIP 的 IGMP 支持，W5500 可用）
 
 ### 固件（P 阶段；主功能待做）
 
-已建立一个独立的 RGB 常亮验证工程（`demo/fireware/`），默认控制板载 `RGB@IO48` WS2812；它不包含 BSTP、Wi-Fi 配网或总线功能，且尚未完成编译/烧录验证。以下 P 阶段是产品固件工作，不包含该验证工程：
+已建立一个独立的 RGB 常亮验证工程（`demo/fireware/`），默认控制板载 `RGB@IO48` WS2812；它不包含 BSTP、Wi-Fi 配网或总线功能。固件源码已加入固定 endpoint ID 和 CAN/Ethernet 驱动接口骨架，但尚无 CAN 控制器驱动。以下 P 阶段是产品固件工作，不包含 RGB 验证功能：
 
 | 阶段 | 内容 | 验收判据 |
 |---|---|---|
 | **P0** 硬件打通 | SPI 通 MCP2518FD，回环自收自发 | 读 `CiCON` 符合预期；500k/2M 回环 1000 帧零丢 |
 | **P1** CAN-FD + BSTP over USB | 2.2 节协议 + TinyUSB CDC | `BusSpyTool.cli monitor --usb` 能收到带 `ts_us` 的帧；批量包解析正确 |
 | **P2** 周期引擎 + E2E | 4.3 / 4.5 节 | 10 ms 周期帧连跑 1 小时：**抖动 p99 < 500 µs，`cyc_miss` = 0，无时基漂移** |
-| **P3** TWAI 预留通道 | CAN 2.0 第二通道 | 双通道同时收发，互不干扰 |
+| **P3** CAN2.0B #1（TWAI） | `BUSSPY_CH_CAN_CLASSIC_1` | 与 CAN-FD 1 同时收发 |
 | **P4** W5500 + 裸 UDP 帧 | 6.4 节，复用周期引擎 | 与被测 ECU 对通，`chn=2` 的帧正确上报 |
-| **P5**（可选）SOME/IP 端点 | 6.5 节 | 通用抓包工具能识别 OfferService |
+| **P5** 其余 3 路 CAN 控制器 | CAN-FD 2、CAN2.0B #2/#3 的既有 ID 和接口 | 多通道并发压测，验证 USB/W5500 吞吐与丢帧 |
+| **P6**（可选）SOME/IP 端点 | 6.5 节 | 通用抓包工具能识别 OfferService |
 
-**固件没有硬件阻塞点。** USB CDC 是 S3 原生外设，不需要 W5500：
+**分阶段硬件依赖：** USB CDC 是 S3 原生外设，不需要 W5500；P0–P2 可先用现有 ESP32-S3 和 MCP2518FD 台架推进：
 
-- P0–P3 只用 ESP32-S3 + MCP2518FD，**现有物料即可开工**
-- 上位机侧已经能用模拟器完整验证协议与界面，固件写好直接对接
-- W5500 只有 P4 才需要
+- P3 需要 CAN 收发器；P4 需要 W5500；P5 需要其余外部 CAN 控制器/收发器并依据 V1.4 图纸完成板级复核
+- 上位机侧已能用模拟器验证协议与界面；固件端点 ID 不随硬件阶段重排
 
-> **P2 的判据是整个方案的生死线** —— 如果周期抖动达不到，
+> **P2 的判据是单路 CAN-FD 主干的关键验收项** —— 如果周期抖动达不到，
 > 这个工具就只剩「廉价 CAN 分析仪」，失去了「把调度下放固件」的全部意义。
 
 ---
@@ -1105,12 +1110,12 @@ SD 需要多播 `224.244.224.245:30490`（lwIP 的 IGMP 支持，W5500 可用）
 
 | 风险 | 等级 | 缓解 |
 |---|---|---|
-| W5500 未到货 | **低** | 只影响 P4（被测以太网）。P0–P3 用 USB CDC + 现有物料即可完成 |
-| SPI 吞吐瓶颈：满载 CAN-FD 8 Mbps + 64 B 负载时帧率高 | 中 | MCP2518FD 批量读 FIFO；台架实际负载远低于满载 |
-| W5500 SPI 与 MCP2518FD SPI 争抢 CPU | 中 | 双核隔离（4.2）；必要时 W5500 降到 20 MHz；Wi-Fi 默认关闭（3.2） |
+| W5500 未到货 | **低** | 不阻塞 P0–P3；P4 才需要 W5500 |
+| 最终 5 路 CAN + W5500 的 SPI/CPU/USB 吞吐不足 | 中 | 先做单路验收；P5 前按目标负载测算和实测，必要时更换主控/控制器架构 |
+| W5500 SPI 与 CAN 控制器 SPI 争抢资源 | 中 | 具体分组未冻结；按 2025-V1.4 图纸审核，进行并发压力测试后再定板 |
 | TBC 32 位 71.6 分钟回绕 | 中 | 固件做 64 位软扩展（3.7 节注） |
 | **N16R8 的 Octal PSRAM 占用 GPIO 33–37** | 中 | 引脚分配避开，见 3.4。上电即失败的典型原因 |
-| 单通道 vs 台架实际需 2–8 路 | 中 | 本方案定位**工具/调试设备**，非台架主力；多路需多块板或换方案 |
+| 保留的通道 ID 与 BSTP v1 兼容 | 中 | 固定 ID 0–2，新增通道只追加 ID；用自测保护历史映射 |
 | **BSTP 两侧一致性需自己维护** | 中 | 自有协议没有现成参考实现。对策：结构体定义只写一份（C header），用脚本生成 Python ctypes，避免手抄漂移 |
 | 热路径静默 catch 藏掉配置错误 | 低 | 已踩过：`database.decode` 用了 cantools 不存在的参数名，异常被吞，表现为「波形图全空」却无线索。现改为**首次失败必记一笔**（`core/database.py`） |
 | 预生成类 807K 行，import 开销可能超过解码开销 | 低 | 仅记录，本期不改（5.3 节）。按需懒加载是后续方向 |

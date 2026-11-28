@@ -25,8 +25,17 @@ from BusSpyTool.core.bstp import Chn, Frame
 from BusSpyTool.core.device import Device
 from BusSpyTool.core.transport import SerialTransport
 
-CHN_ALIASES = {"canfd": Chn.CANFD, "can": Chn.TWAI, "twai": Chn.TWAI,
-               "eth": Chn.ETH}
+CHN_ALIASES = {
+    "canfd": Chn.CANFD_1,
+    "canfd1": Chn.CANFD_1,
+    "canfd2": Chn.CANFD_2,
+    "can": Chn.CAN_CLASSIC_1,
+    "can1": Chn.CAN_CLASSIC_1,
+    "twai": Chn.CAN_CLASSIC_1,
+    "can2": Chn.CAN_CLASSIC_2,
+    "can3": Chn.CAN_CLASSIC_3,
+    "eth": Chn.ETH,
+}
 
 
 def _parse_data(text: str) -> bytes:

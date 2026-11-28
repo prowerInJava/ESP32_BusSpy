@@ -72,9 +72,32 @@ class Ctrl:
 
 
 class Chn:
-    CANFD = 0        # MCP2518FD
-    TWAI = 1         # ESP32-S3 内置，CAN 2.0 预留通道
-    ETH = 2          # arxml 裸 UDP 帧
+    # Keep the original v1 IDs stable; append future physical channels.
+    CANFD_1 = 0
+    CANFD = CANFD_1   # Backward-compatible name for the first CAN-FD port
+    CAN_CLASSIC_1 = 1
+    CAN2_0B_1 = CAN_CLASSIC_1
+    TWAI = CAN_CLASSIC_1
+    ETH = 2
+    ETHERNET = ETH
+    CANFD_2 = 3
+    CAN_CLASSIC_2 = 4
+    CAN2_0B_2 = CAN_CLASSIC_2
+    CAN_CLASSIC_3 = 5
+    CAN2_0B_3 = CAN_CLASSIC_3
+
+    CAN_COUNT = 5
+    ENDPOINT_COUNT = 6
+
+
+CHANNEL_NAMES = {
+    Chn.CANFD_1: "CAN-FD 1",
+    Chn.CAN_CLASSIC_1: "CAN 2.0B 1 (预留)",
+    Chn.ETH: "ETH (预留)",
+    Chn.CANFD_2: "CAN-FD 2 (预留)",
+    Chn.CAN_CLASSIC_2: "CAN 2.0B 2 (预留)",
+    Chn.CAN_CLASSIC_3: "CAN 2.0B 3 (预留)",
+}
 
 
 class ErrState:

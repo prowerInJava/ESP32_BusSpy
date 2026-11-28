@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title description">
+  <title id="title">ESP32-S3 five-CAN and Ethernet product architecture</title>
+  <desc id="description">Conceptual architecture for three Classical CAN channels, two CAN-FD channels, and W5500 Ethernet. CAN-FD 1 is the current development phase; all other endpoints are reserved. No GPIO or SPI assignment is shown.</desc>
+  <style>
+    text { font-family: Arial, sans-serif; fill: #172033; }
+    .title { font-size: 28px; font-weight: 700; }
+    .subtitle { font-size: 15px; fill: #526078; }
+    .head { font-size: 19px; font-weight: 700; }
+    .label { font-size: 15px; font-weight: 600; }
+    .small { font-size: 13px; fill: #526078; }
+    .card { fill: #f7f9fc; stroke: #b8c5d6; stroke-width: 2; }
+    .active { fill: #e8f7ef; stroke: #32a36a; stroke-width: 2; }
+    .reserved { fill: #fff8e6; stroke: #d3a52e; stroke-width: 2; stroke-dasharray: 8 5; }
+    .wire { fill: none; stroke: #526078; stroke-width: 3; }
+    .wire-active { fill: none; stroke: #23885a; stroke-width: 4; }
+  </style>
+
+  <rect width="1400" height="820" fill="#ffffff"/>
+  <text x="40" y="48" class="title">Product Architecture: 3 CAN 2.0B + 2 CAN-FD + W5500</text>
+  <text x="40" y="78" class="subtitle">Phase 1 develops CAN-FD 1 only. The remaining four CAN endpoints and Ethernet keep reserved software IDs/interfaces.</text>
+
+  <rect x="45" y="130" width="250" height="110" rx="14" class="card"/>
+  <text x="72" y="170" class="head">PC / Host Tool</text>
+  <text x="72" y="200" class="small">BSTP monitor / control</text>
+  <path d="M295 185 H410" class="wire-active"/>
+  <text x="318" y="169" class="small">Native USB CDC</text>
+
+  <rect x="410" y="120" width="360" height="560" rx="18" class="card"/>
+  <rect x="410" y="120" width="360" height="62" rx="18" fill="#e9eef6"/>
+  <text x="438" y="159" class="head">ESP32-S3 N16R8</text>
+  <text x="445" y="216" class="label">Stable endpoint router / BSTP</text>
+  <text x="445" y="244" class="small">CAN drivers share one CAN interface</text>
+  <text x="445" y="268" class="small">Ethernet uses a separate datagram interface</text>
+  <text x="445" y="630" class="small">GPIO / SPI groups intentionally not assigned here</text>
+
+  <path d="M770 240 H850" class="wire-active"/>
+  <path d="M770 315 H850" class="wire"/>
+  <path d="M770 390 H850" class="wire"/>
+  <path d="M770 465 H850" class="wire"/>
+  <path d="M770 540 H850" class="wire"/>
+  <path d="M770 615 H850" class="wire"/>
+
+  <rect x="850" y="205" width="500" height="68" rx="12" class="active"/>
+  <text x="875" y="234" class="label">ID 0 · CAN-FD 1 · Current phase</text>
+  <text x="875" y="256" class="small">MCP2518FD controller + CAN-FD transceiver</text>
+
+  <rect x="850" y="280" width="500" height="68" rx="12" class="reserved"/>
+  <text x="875" y="309" class="label">ID 1 · CAN 2.0B 1 · Reserved</text>
+  <text x="875" y="331" class="small">ESP32-S3 TWAI + Classical CAN transceiver</text>
+
+  <rect x="850" y="355" width="500" height="68" rx="12" class="reserved"/>
+  <text x="875" y="384" class="label">ID 3 · CAN-FD 2 · Reserved</text>
+  <text x="875" y="406" class="small">Independent CAN-FD controller + transceiver</text>
+
+  <rect x="850" y="430" width="500" height="68" rx="12" class="reserved"/>
+  <text x="875" y="459" class="label">ID 4 · CAN 2.0B 2 · Reserved</text>
+  <text x="875" y="481" class="small">External Classical CAN controller + transceiver</text>
+
+  <rect x="850" y="505" width="500" height="68" rx="12" class="reserved"/>
+  <text x="875" y="534" class="label">ID 5 · CAN 2.0B 3 · Reserved</text>
+  <text x="875" y="556" class="small">External Classical CAN controller + transceiver</text>
+
+  <rect x="850" y="580" width="500" height="68" rx="12" class="reserved"/>
+  <text x="875" y="609" class="label">ID 2 · Ethernet / W5500 · Reserved</text>
+  <text x="875" y="631" class="small">Independent network interface to the target ECU</text>
+
+  <rect x="40" y="718" width="1310" height="68" rx="12" fill="#fff1ee" stroke="#d64c4c" stroke-width="1.5"/>
+  <text x="62" y="746" class="label">No GPIO or SPI pinout is implied by this architecture diagram.</text>
+  <text x="62" y="770" class="small">Freeze physical assignments only after checking the ESP32-S3 2025-V1.4 board documents and validating concurrent throughput.</text>
+</svg>

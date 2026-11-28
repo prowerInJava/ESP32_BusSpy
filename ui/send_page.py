@@ -97,10 +97,9 @@ class SendPage(tb.Frame):
         row.pack(fill=X)
 
         tb.Label(row, text="通道").pack(side=LEFT)
-        self.chn_var = tk.StringVar(value=CHN_NAMES[Chn.CANFD])
-        tb.Combobox(row, textvariable=self.chn_var, width=8, state="readonly",
-                    values=[CHN_NAMES[Chn.CANFD], CHN_NAMES[Chn.TWAI],
-                            CHN_NAMES[Chn.ETH]]).pack(side=LEFT, padx=(4, 12))
+        self.chn_var = tk.StringVar(value=CHN_NAMES[Chn.CANFD_1])
+        tb.Combobox(row, textvariable=self.chn_var, width=22, state="readonly",
+                    values=list(CHN_NAMES.values())).pack(side=LEFT, padx=(4, 12))
 
         tb.Label(row, text="ID(hex)").pack(side=LEFT)
         self.id_var = tk.StringVar(value="123")

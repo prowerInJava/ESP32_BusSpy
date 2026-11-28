@@ -18,10 +18,10 @@ from typing import Dict, Optional, Tuple
 import ttkbootstrap as tb
 from ttkbootstrap.constants import BOTH, END, LEFT, RIGHT, X, Y
 
-from BusSpyTool.core.bstp import Chn
+from BusSpyTool.core.bstp import CHANNEL_NAMES, Chn
 from BusSpyTool.core.tracebuf import Aggregate, TraceBuffer
 
-CHN_NAMES = {Chn.CANFD: "CAN-FD", Chn.TWAI: "CAN", Chn.ETH: "ETH"}
+CHN_NAMES = CHANNEL_NAMES
 
 MODE_FIXED = "fixed"
 MODE_SCROLL = "scroll"
@@ -36,7 +36,7 @@ class TracePage(tb.Frame):
 
     COLUMNS = (
         ("time", "时间", 100),
-        ("chn", "通道", 74),
+        ("chn", "通道", 150),
         ("dir", "方向", 60),
         ("id", "ID", 86),
         ("name", "报文名", 180),
