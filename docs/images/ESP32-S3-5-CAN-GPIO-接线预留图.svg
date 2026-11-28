@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1160" viewBox="0 0 1500 1160" role="img" aria-labelledby="title description">
+  <title id="title">ESP32-S3 five-CAN product GPIO and wiring reservation</title>
+  <desc id="description">Planned full-product pin allocation that preserves the current CAN-FD 1 wiring and reserves two SPI buses for all future CAN controllers and W5500. Based on the user-provided vendor pinout image; board revision and concurrent throughput require verification before PCB release.</desc>
+  <style>
+    text { font-family: Arial, sans-serif; fill: #172033; }
+    .title { font-size: 27px; font-weight: 700; }
+    .subtitle { font-size: 14px; fill: #526078; }
+    .head { font-size: 17px; font-weight: 700; }
+    .label { font-size: 14px; font-weight: 600; }
+    .small { font-size: 12px; fill: #526078; }
+    .board { fill: #f0f3f8; stroke: #65748b; stroke-width: 2; }
+    .active { fill: #e8f7ef; stroke: #32a36a; stroke-width: 2; }
+    .reserved { fill: #fff8e6; stroke: #d3a52e; stroke-width: 1.5; stroke-dasharray: 7 4; }
+    .block { fill: #f7f9fc; stroke: #aab7c8; stroke-width: 1.5; }
+    .warn { fill: #fff1ee; stroke: #d64c4c; stroke-width: 1.5; }
+    .wire { fill: none; stroke: #526078; stroke-width: 2; }
+    .wire-active { fill: none; stroke: #23885a; stroke-width: 2.5; }
+  </style>
+
+  <rect width="1500" height="1160" fill="#ffffff"/>
+  <text x="35" y="42" class="title">Full Product Wiring Reservation: ESP32-S3 + 5 CAN + W5500</text>
+  <text x="35" y="68" class="subtitle">CAN-FD 1 GPIO 9-13 are fixed in the product wiring baseline. Future endpoints are assigned now so their wiring does not take those pins.</text>
+  <rect x="35" y="84" width="1430" height="42" rx="8" class="warn"/>
+  <text x="50" y="102" class="small">Pin plan is based on the user-provided antenna-board vendor pin map and ESP32-S3 N16R8 restrictions; verify exact 2025-V1.4 schematic and throughput before PCB release.</text>
+  <text x="50" y="118" class="small">ESP32 GPIO/SPI/I2C signals use 3.3 V logic; CANH/CANL are on the transceiver side. Each external SPI device has its own CS and INT.</text>
+
+  <rect x="35" y="145" width="350" height="700" rx="16" class="board"/>
+  <text x="58" y="180" class="head">ESP32-S3 N16R8 pin reserve</text>
+  <line x1="58" y1="196" x2="362" y2="196" stroke="#c3ccd8"/>
+  <text x="58" y="228" class="label">SPI2 / CAN-FD bus A</text>
+  <text x="58" y="252" class="small">SCK GPIO12 / MOSI GPIO11 / MISO GPIO13</text>
+  <text x="58" y="276" class="small">FD1: CS10, INT9; FD2: CS6, INT5</text>
+  <line x1="58" y1="294" x2="362" y2="294" stroke="#c3ccd8"/>
+  <text x="58" y="326" class="label">SPI3 / external I/O bus B</text>
+  <text x="58" y="350" class="small">SCK GPIO18 / MOSI GPIO17 / MISO GPIO16</text>
+  <text x="58" y="374" class="small">Classic 2: CS15, INT14; Classic 3: CS4, INT21</text>
+  <text x="58" y="398" class="small">W5500: CS47, INT38</text>
+  <line x1="58" y1="416" x2="362" y2="416" stroke="#c3ccd8"/>
+  <text x="58" y="448" class="label">Other fixed interfaces</text>
+  <text x="58" y="472" class="small">TWAI / Classic 1: TX GPIO1, RX GPIO2</text>
+  <text x="58" y="496" class="small">OLED I2C: SCL GPIO8, SDA GPIO7</text>
+  <text x="58" y="520" class="small">Optional mode-control expander shares I2C</text>
+  <text x="58" y="544" class="small">Native USB CDC: GPIO19 / GPIO20 reserved</text>
+  <line x1="58" y1="562" x2="362" y2="562" stroke="#c3ccd8"/>
+  <text x="58" y="594" class="label">Do not allocate to CAN/SPI</text>
+  <text x="58" y="618" class="small">0, 3, 45, 46: strapping pins</text>
+  <text x="58" y="642" class="small">26-32: Flash / PSRAM interface</text>
+  <text x="58" y="666" class="small">33-37: N16R8 Octal PSRAM</text>
+  <text x="58" y="690" class="small">39-42: external JTAG; 43-44: UART0</text>
+  <text x="58" y="714" class="small">GPIO48: onboard RGB LED</text>
+  <text x="58" y="790" class="small">Pin groups use the ESP32-S3 GPIO matrix.</text>
+  <text x="58" y="814" class="small">Shared nets: SPI, I2C, power and ground.</text>
+
+  <g>
+    <path d="M385 190 H414" class="wire-active"/>
+    <rect x="415" y="145" width="230" height="92" rx="10" class="active"/>
+    <text x="430" y="173" class="label">CAN-FD 1 / ID 0</text>
+    <text x="430" y="197" class="small">MCP2518FD / SPI2</text>
+    <text x="430" y="219" class="small">CS10 / INT9 (current pins)</text>
+    <rect x="660" y="145" width="300" height="92" rx="10" class="block"/>
+    <text x="678" y="180" class="label">FD transceiver + ESD protection</text>
+    <text x="678" y="207" class="small">Per-channel switchable 120 ohm termination</text>
+    <rect x="975" y="145" width="250" height="92" rx="10" class="block"/>
+    <text x="993" y="180" class="label">Dedicated CAN-FD 1 port</text>
+    <text x="993" y="207" class="small">CANH / CANL / reference ground</text>
+    <path d="M645 191 H660 M960 191 H975" class="wire-active"/>
+  </g>
+
+  <g>
+    <path d="M385 306 H414" class="wire"/>
+    <rect x="415" y="261" width="230" height="92" rx="10" class="reserved"/>
+    <text x="430" y="289" class="label">CAN-FD 2 / ID 3</text>
+    <text x="430" y="313" class="small">Independent controller / SPI2</text>
+    <text x="430" y="335" class="small">CS6 / INT5</text>
+    <rect x="660" y="261" width="300" height="92" rx="10" class="block"/>
+    <text x="678" y="296" class="label">FD transceiver + ESD protection</text>
+    <text x="678" y="323" class="small">Per-channel switchable 120 ohm termination</text>
+    <rect x="975" y="261" width="250" height="92" rx="10" class="block"/>
+    <text x="993" y="296" class="label">Dedicated CAN-FD 2 port</text>
+    <text x="993" y="323" class="small">CANH / CANL / reference ground</text>
+    <path d="M645 307 H660 M960 307 H975" class="wire"/>
+  </g>
+
+  <g>
+    <path d="M385 422 H414" class="wire"/>
+    <rect x="415" y="377" width="230" height="92" rx="10" class="reserved"/>
+    <text x="430" y="405" class="label">CAN2.0B 1 / ID 1</text>
+    <text x="430" y="429" class="small">ESP32-S3 TWAI</text>
+    <text x="430" y="451" class="small">TX1 / RX2</text>
+    <rect x="660" y="377" width="300" height="92" rx="10" class="block"/>
+    <text x="678" y="412" class="label">Classical CAN transceiver + ESD</text>
+    <text x="678" y="439" class="small">Per-channel switchable 120 ohm termination</text>
+    <rect x="975" y="377" width="250" height="92" rx="10" class="block"/>
+    <text x="993" y="412" class="label">Dedicated CAN 1 port</text>
+    <text x="993" y="439" class="small">CANH / CANL / reference ground</text>
+    <path d="M645 423 H660 M960 423 H975" class="wire"/>
+  </g>
+
+  <g>
+    <path d="M385 538 H414" class="wire"/>
+    <rect x="415" y="493" width="230" height="92" rx="10" class="reserved"/>
+    <text x="430" y="521" class="label">CAN2.0B 2 / ID 4</text>
+    <text x="430" y="545" class="small">External controller / SPI3</text>
+    <text x="430" y="567" class="small">CS15 / INT14</text>
+    <rect x="660" y="493" width="300" height="92" rx="10" class="block"/>
+    <text x="678" y="528" class="label">Classical CAN transceiver + ESD</text>
+    <text x="678" y="555" class="small">Per-channel switchable 120 ohm termination</text>
+    <rect x="975" y="493" width="250" height="92" rx="10" class="block"/>
+    <text x="993" y="528" class="label">Dedicated CAN 2 port</text>
+    <text x="993" y="555" class="small">CANH / CANL / reference ground</text>
+    <path d="M645 539 H660 M960 539 H975" class="wire"/>
+  </g>
+
+  <g>
+    <path d="M385 654 H414" class="wire"/>
+    <rect x="415" y="609" width="230" height="92" rx="10" class="reserved"/>
+    <text x="430" y="637" class="label">CAN2.0B 3 / ID 5</text>
+    <text x="430" y="661" class="small">External controller / SPI3</text>
+    <text x="430" y="683" class="small">CS4 / INT21</text>
+    <rect x="660" y="609" width="300" height="92" rx="10" class="block"/>
+    <text x="678" y="644" class="label">Classical CAN transceiver + ESD</text>
+    <text x="678" y="671" class="small">Per-channel switchable 120 ohm termination</text>
+    <rect x="975" y="609" width="250" height="92" rx="10" class="block"/>
+    <text x="993" y="644" class="label">Dedicated CAN 3 port</text>
+    <text x="993" y="671" class="small">CANH / CANL / reference ground</text>
+    <path d="M645 655 H660 M960 655 H975" class="wire"/>
+  </g>
+
+  <g>
+    <path d="M385 770 H414" class="wire"/>
+    <rect x="415" y="725" width="230" height="92" rx="10" class="reserved"/>
+    <text x="430" y="753" class="label">Ethernet / ID 2</text>
+    <text x="430" y="777" class="small">W5500 / SPI3</text>
+    <text x="430" y="799" class="small">CS47 / INT38</text>
+    <rect x="660" y="725" width="300" height="92" rx="10" class="block"/>
+    <text x="678" y="760" class="label">Ethernet magnetics + line protection</text>
+    <text x="678" y="787" class="small">Interface parts depend on final connector</text>
+    <rect x="975" y="725" width="250" height="92" rx="10" class="block"/>
+    <text x="993" y="760" class="label">Dedicated Ethernet port</text>
+    <text x="993" y="787" class="small">To target ECU; connector TBD</text>
+    <path d="M645 771 H660 M960 771 H975" class="wire"/>
+  </g>
+
+  <rect x="35" y="880" width="1430" height="92" rx="12" class="warn"/>
+  <text x="55" y="910" class="label">Power / grounding: USB-C 5 V enters a product power tree sized for MCU, five CAN transceivers, and W5500; all CAN grounds are common (non-isolated).</text>
+  <text x="55" y="938" class="small">Do not use the development board regulator as the final multi-channel supply. One transceiver per port; W5500 reset uses POR/I2C expander, not a scarce direct GPIO.</text>
+  <text x="55" y="958" class="small">GPIO reservation is intended to keep CAN-FD 1 wiring unchanged. Confirm exact board revision and run full concurrent-throughput tests before locking PCB copper.</text>
+
+  <text x="35" y="1020" class="small">Sources: user-provided vendor pin map / seller confirmation; Espressif ESP32-S3 Datasheet, GPIO restrictions and peripheral pin assignment sections.</text>
+  <text x="35" y="1044" class="small">Status: CAN-FD 1 GPIOs are fixed in this design baseline; verify the exact board schematic and concurrent load before PCB release.</text>
+</svg>

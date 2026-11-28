@@ -18,7 +18,7 @@
   <text x="42" y="46" class="title">CAN-FD 1 Development-Board Bring-up: ESP32-S3 + MCP2518FD Pro + OLED</text>
   <text x="42" y="74" class="subtitle">Development connection record only; follow printed pin labels. Diagram is not to physical scale.</text>
   <rect x="42" y="88" width="1408" height="24" rx="6" fill="#fff1ee" stroke="#d64c4c" stroke-width="1"/>
-  <text x="54" y="105" class="small">Development wiring only: CAN-FD 1 stays a dedicated function, but SPI grouping, GPIOs, power, protection, and connectors may change when the full product is integrated.</text>
+  <text x="54" y="105" class="small">CAN-FD 1 GPIOs are retained in the product plan: SPI2 SCK/MOSI/MISO 12/11/13, CS10, INT9. Full expansion wiring is in the companion product diagram.</text>
 
   <rect x="42" y="120" width="350" height="620" rx="18" class="card"/>
   <rect x="42" y="120" width="350" height="62" rx="18" class="header"/>

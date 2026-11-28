@@ -477,26 +477,29 @@ Wi-Fi 是 S3 内置的，不用也在硅片上。它不是主连接，但有几�
 
 PSRAM / flash 走的是内部 SPI0/SPI1，**不占用** SPI2/SPI3，所以 3.5 节的两路 SPI 分配依然成立。
 
-当前开发板联调接线中 MCP2518FD 使用 GPIO 9–13；新款 0.96 英寸 I2C OLED 使用 GPIO 8（SCL）和 GPIO 7（SDA），
-这只是开发板接线记录，不代表产品针脚分配。显示屏的针脚识别、供电注意事项和联调接线图见
+CAN-FD 1 保留当前联调 GPIO：SPI2 使用 GPIO 12/11/13，CS GPIO 10，INT GPIO 9；产品扩展总线和其他端点的引脚预留见
+[产品 GPIO / 总线分配表](./HARDWARE_PINOUT.md)。新款 0.96 英寸 I2C OLED 使用 GPIO 8（SCL）和 GPIO 7（SDA）。
+显示屏的针脚识别、供电注意事项和联调接线图见
 [ESP32-S3、MCP2518FD 与 OLED 硬件针脚说明](./HARDWARE_PINOUT.md)和
 [OLED 接线说明](./OLED接线说明.md)。新款资料标注 SSD1315，控制器兼容性与当前 I2C 地址仍需上电测试/扫描后确定固件配置。
 
-**产品边界：3 路经典 CAN + 2 路 CAN-FD + W5500。** 按实施阶段先交付 CAN-FD 1；上位机和固件已固定六个 BSTP endpoint ID，并提供 CAN 控制器与 Ethernet 分离的接口骨架。GPIO/SPI 的具体分配须对照 2025-V1.4 板级资料并完成资源核算后再冻结；开发板联调接线不作为产品针脚表。
+**产品边界：3 路经典 CAN + 2 路 CAN-FD + W5500。** 按实施阶段先交付 CAN-FD 1；上位机和固件已固定六个 BSTP endpoint ID，并提供 CAN 控制器与 Ethernet 分离的接口骨架。产品引脚按完整系统分配，CAN-FD 1 保留当前接线；最终 PCB 仍需核对板级版本、器件电气要求和总线并发性能。
 
 ### 3.5 SPI 资源分配
 
-ESP32-S3 可用通用 SPI 控制器 **2 个**（SPI2/GPSPI2、SPI3/GPSPI3）。当前只规划单个 CAN-FD 控制器；最终目标涉及 4 个外部 CAN 控制器和 W5500，多个 SPI 外设需共享总线并独立片选/中断：
+ESP32-S3 可用通用 SPI 控制器 **2 个**（SPI2/GPSPI2、SPI3/GPSPI3）。产品预留将双 CAN-FD 放在 SPI2，将两个外部经典 CAN 控制器和 W5500 放在 SPI3；共享 SCK/MOSI/MISO，每个器件独立 CS/INT：
 
 ```
-SPI host(s) ──► MCP2518FD #1                 (当前阶段 CAN-FD 1)
-              ├─ CAN-FD #2 外部控制器      (预留)
-              ├─ CAN2.0B #2/#3 外部控制器  (预留)
-              └─ W5500                      (预留，被测网络)
-TWAI ─────────► CAN2.0B #1                  (预留)
+SPI2 / GPIO 12,11,13 ──► MCP2518FD #1 (CS10 / INT9; current wiring retained)
+                      └─ CAN-FD #2 (CS6 / INT5)
+SPI3 / GPIO 18,17,16 ──► CAN2.0B #2 (CS15 / INT14)
+                      ├─ CAN2.0B #3 (CS4 / INT21)
+                      └─ W5500      (CS47 / INT38)
+TWAI / GPIO 1,2 ───────► CAN2.0B #1
+I2C / GPIO 8,7 ────────► OLED + reserved mode-control GPIO expander
 ```
 
-图示只表达功能分工，不冻结 GPIO 或 SPI host 分组。共享 SPI 会串行化事务，最终方案必须压测双 FD、经典 CAN、W5500 与 USB 上传的组合负载；若无法满足目标，应调整主控/控制器架构，而不是重排已发布的 endpoint ID。
+这组 pin reservation 按用户提供的天线版板卡引脚图规划，避开启动绑带、USB、Flash/PSRAM、JTAG、UART0 和板载 RGB 脚。共享 SPI 会串行化事务，必须压测双 FD、经典 CAN、W5500 与 USB 上传的组合负载；若不达目标，应在 PCB 定版前重新评估总线/主控，而不是重排已发布的 endpoint ID。具体 GPIO 表和官方限制来源见 `docs/HARDWARE_PINOUT.md`。
 
 ### 3.6 开发验证物料与产品 BOM 边界
 

@@ -3,7 +3,7 @@
 ESP32-S3、MCP2518FD 与 OLED 三块板的完整合接图和 MCP 针脚功能见
 [硬件针脚说明](./HARDWARE_PINOUT.md)。
 
-本页 GPIO 接线仅适用于当前开发板联调。它不是产品板引脚分配；产品 GPIO/SPI 规划须基于 ESP32-S3 2025-V1.4 板级资料和完整产品资源核算后冻结。
+GPIO 8/7 已纳入完整产品引脚预留表，当前 OLED 联调沿用同一组线；请同时参考[五路 CAN 产品 GPIO 接线预留图](./images/ESP32-S3-5-CAN-GPIO-接线预留图.svg)。产品 PCB 定版前仍须按 ESP32-S3 2025-V1.4 板级资料复核。
 
 ## 模块识别与规格
 
@@ -27,7 +27,7 @@ ESP32-S3、MCP2518FD 与 OLED 三块板的完整合接图和 MCP 针脚功能见
 
 ![ESP32-S3 到 OLED 的接线示意图](./images/ESP32-S3-OLED接线图.svg)
 
-GPIO 7/8 是当前开发板联调用的 OLED I2C 引脚；既有 MCP2518FD 开发板 SPI/中断接线使用 GPIO 9–13。ESP32-S3 的 I2C 信号可通过 GPIO 矩阵映射，但这组 GPIO 不应被视为产品针脚分配。
+GPIO 7/8 是 OLED I2C 引脚，并按完整产品分配继续保留；MCP2518FD 使用 GPIO 9–13 的 SPI/CS/INT 组合也已纳入产品预留。ESP32-S3 的 I2C 信号可通过 GPIO 矩阵映射。
 
 ## 首次上电检查
 
