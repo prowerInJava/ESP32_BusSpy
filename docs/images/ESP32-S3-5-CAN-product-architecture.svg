@@ -1,70 +1,165 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820" role="img" aria-labelledby="title description">
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1180" viewBox="0 0 1600 1180" role="img" aria-labelledby="title description">
   <title id="title">ESP32-S3 five-CAN and Ethernet product architecture</title>
-  <desc id="description">Conceptual architecture for three Classical CAN channels, two CAN-FD channels, and W5500 Ethernet. CAN-FD 1 is the current development phase; all other endpoints are reserved. No GPIO or SPI assignment is shown.</desc>
+  <desc id="description">Product-level functional architecture for three independent Classical CAN channels, two CAN-FD channels, and W5500 Ethernet. Each CAN port has its own controller path, transceiver, protection, connector, and configurable termination. No GPIO or SPI host assignment is frozen.</desc>
   <style>
     text { font-family: Arial, sans-serif; fill: #172033; }
     .title { font-size: 28px; font-weight: 700; }
     .subtitle { font-size: 15px; fill: #526078; }
-    .head { font-size: 19px; font-weight: 700; }
-    .label { font-size: 15px; font-weight: 600; }
-    .small { font-size: 13px; fill: #526078; }
-    .card { fill: #f7f9fc; stroke: #b8c5d6; stroke-width: 2; }
+    .head { font-size: 17px; font-weight: 700; }
+    .label { font-size: 14px; font-weight: 600; }
+    .small { font-size: 12px; fill: #526078; }
+    .host { fill: #eef5ff; stroke: #4f83c2; stroke-width: 2; }
+    .mcu { fill: #f0f3f8; stroke: #65748b; stroke-width: 2; }
     .active { fill: #e8f7ef; stroke: #32a36a; stroke-width: 2; }
     .reserved { fill: #fff8e6; stroke: #d3a52e; stroke-width: 2; stroke-dasharray: 8 5; }
-    .wire { fill: none; stroke: #526078; stroke-width: 3; }
-    .wire-active { fill: none; stroke: #23885a; stroke-width: 4; }
+    .physical { fill: #f7f9fc; stroke: #aab7c8; stroke-width: 1.5; }
+    .power { fill: #fff1ee; stroke: #d64c4c; stroke-width: 1.5; }
+    .wire { fill: none; stroke: #526078; stroke-width: 2.5; }
+    .wire-active { fill: none; stroke: #23885a; stroke-width: 3; }
   </style>
 
-  <rect width="1400" height="820" fill="#ffffff"/>
-  <text x="40" y="48" class="title">Product Architecture: 3 CAN 2.0B + 2 CAN-FD + W5500</text>
-  <text x="40" y="78" class="subtitle">Phase 1 develops CAN-FD 1 only. The remaining four CAN endpoints and Ethernet keep reserved software IDs/interfaces.</text>
+  <rect width="1600" height="1180" fill="#ffffff"/>
+  <text x="40" y="46" class="title">Product Architecture: 3 CAN 2.0B + 2 CAN-FD + W5500</text>
+  <text x="40" y="74" class="subtitle">CAN-FD 1 is the first implementation stage, not a reduced product architecture. Physical pin assignments and final parts remain subject to design review.</text>
 
-  <rect x="45" y="130" width="250" height="110" rx="14" class="card"/>
-  <text x="72" y="170" class="head">PC / Host Tool</text>
-  <text x="72" y="200" class="small">BSTP monitor / control</text>
-  <path d="M295 185 H410" class="wire-active"/>
-  <text x="318" y="169" class="small">Native USB CDC</text>
+  <rect x="40" y="118" width="230" height="92" rx="12" class="host"/>
+  <text x="62" y="153" class="head">PC / Host Tool</text>
+  <text x="62" y="179" class="small">BSTP monitor / control</text>
+  <path d="M270 164 H300" class="wire-active"/>
+  <text x="260" y="145" class="small">USB CDC</text>
 
-  <rect x="410" y="120" width="360" height="560" rx="18" class="card"/>
-  <rect x="410" y="120" width="360" height="62" rx="18" fill="#e9eef6"/>
-  <text x="438" y="159" class="head">ESP32-S3 N16R8</text>
-  <text x="445" y="216" class="label">Stable endpoint router / BSTP</text>
-  <text x="445" y="244" class="small">CAN drivers share one CAN interface</text>
-  <text x="445" y="268" class="small">Ethernet uses a separate datagram interface</text>
-  <text x="445" y="630" class="small">GPIO / SPI groups intentionally not assigned here</text>
+  <rect x="300" y="118" width="340" height="830" rx="16" class="mcu"/>
+  <text x="326" y="155" class="head">ESP32-S3 N16R8</text>
+  <text x="326" y="194" class="label">Stable endpoint router / BSTP</text>
+  <text x="326" y="221" class="small">Six fixed endpoint IDs</text>
+  <line x1="326" y1="244" x2="614" y2="244" stroke="#c3ccd8"/>
+  <text x="326" y="278" class="label">CAN control</text>
+  <text x="326" y="303" class="small">1 x TWAI for Classical CAN 1</text>
+  <text x="326" y="326" class="small">SPI host(s) for external controllers</text>
+  <text x="326" y="349" class="small">Per-controller CS and interrupt service</text>
+  <line x1="326" y1="371" x2="614" y2="371" stroke="#c3ccd8"/>
+  <text x="326" y="405" class="label">Ethernet control</text>
+  <text x="326" y="430" class="small">Separate W5500 datagram interface</text>
+  <text x="326" y="453" class="small">Not presented as a CAN endpoint</text>
+  <line x1="326" y1="476" x2="614" y2="476" stroke="#c3ccd8"/>
+  <text x="326" y="510" class="label">Product resource constraints</text>
+  <text x="326" y="535" class="small">2 general-purpose SPI hosts total</text>
+  <text x="326" y="558" class="small">Bus grouping and pinout not frozen</text>
+  <text x="326" y="581" class="small">Validate concurrent CAN / Ethernet / USB load</text>
+  <text x="326" y="899" class="small">No GPIO assignment is implied by this diagram.</text>
 
-  <path d="M770 240 H850" class="wire-active"/>
-  <path d="M770 315 H850" class="wire"/>
-  <path d="M770 390 H850" class="wire"/>
-  <path d="M770 465 H850" class="wire"/>
-  <path d="M770 540 H850" class="wire"/>
-  <path d="M770 615 H850" class="wire"/>
+  <path d="M640 177 H680" class="wire-active"/>
+  <path d="M640 303 H680" class="wire"/>
+  <path d="M640 429 H680" class="wire"/>
+  <path d="M640 555 H680" class="wire"/>
+  <path d="M640 681 H680" class="wire"/>
+  <path d="M640 807 H680" class="wire"/>
 
-  <rect x="850" y="205" width="500" height="68" rx="12" class="active"/>
-  <text x="875" y="234" class="label">ID 0 · CAN-FD 1 · Current phase</text>
-  <text x="875" y="256" class="small">MCP2518FD controller + CAN-FD transceiver</text>
+  <g>
+    <rect x="700" y="128" width="180" height="98" rx="10" class="active"/>
+    <text x="715" y="157" class="label">ID 0 · CAN-FD 1</text>
+    <text x="715" y="181" class="small">MCP2518FD / SPI</text>
+    <text x="715" y="202" class="small">First implementation stage</text>
+    <rect x="895" y="128" width="215" height="98" rx="10" class="physical"/>
+    <text x="910" y="162" class="label">CAN-FD transceiver</text>
+    <text x="910" y="188" class="small">Part selection in product review</text>
+    <rect x="1125" y="128" width="220" height="98" rx="10" class="physical"/>
+    <text x="1140" y="157" class="label">ESD / surge protection</text>
+    <text x="1140" y="183" class="small">Configurable 120 ohm termination</text>
+    <rect x="1360" y="128" width="200" height="98" rx="10" class="physical"/>
+    <text x="1375" y="162" class="label">Dedicated CAN-FD port</text>
+    <text x="1375" y="188" class="small">Connector form TBD</text>
+    <path d="M880 177 H895 M1110 177 H1125 M1345 177 H1360" class="wire-active"/>
+  </g>
 
-  <rect x="850" y="280" width="500" height="68" rx="12" class="reserved"/>
-  <text x="875" y="309" class="label">ID 1 · CAN 2.0B 1 · Reserved</text>
-  <text x="875" y="331" class="small">ESP32-S3 TWAI + Classical CAN transceiver</text>
+  <g>
+    <rect x="700" y="254" width="180" height="98" rx="10" class="reserved"/>
+    <text x="715" y="283" class="label">ID 1 · CAN 2.0B 1</text>
+    <text x="715" y="307" class="small">ESP32-S3 TWAI</text>
+    <text x="715" y="328" class="small">Reserved endpoint</text>
+    <rect x="895" y="254" width="215" height="98" rx="10" class="physical"/>
+    <text x="910" y="288" class="label">Classical CAN transceiver</text>
+    <text x="910" y="314" class="small">Part selection in product review</text>
+    <rect x="1125" y="254" width="220" height="98" rx="10" class="physical"/>
+    <text x="1140" y="283" class="label">ESD / surge protection</text>
+    <text x="1140" y="309" class="small">Configurable 120 ohm termination</text>
+    <rect x="1360" y="254" width="200" height="98" rx="10" class="physical"/>
+    <text x="1375" y="288" class="label">Dedicated CAN 1 port</text>
+    <text x="1375" y="314" class="small">Connector form TBD</text>
+    <path d="M880 303 H895 M1110 303 H1125 M1345 303 H1360" class="wire"/>
+  </g>
 
-  <rect x="850" y="355" width="500" height="68" rx="12" class="reserved"/>
-  <text x="875" y="384" class="label">ID 3 · CAN-FD 2 · Reserved</text>
-  <text x="875" y="406" class="small">Independent CAN-FD controller + transceiver</text>
+  <g>
+    <rect x="700" y="380" width="180" height="98" rx="10" class="reserved"/>
+    <text x="715" y="409" class="label">ID 3 · CAN-FD 2</text>
+    <text x="715" y="433" class="small">FD controller / SPI</text>
+    <text x="715" y="454" class="small">Reserved endpoint</text>
+    <rect x="895" y="380" width="215" height="98" rx="10" class="physical"/>
+    <text x="910" y="414" class="label">CAN-FD transceiver</text>
+    <text x="910" y="440" class="small">Part selection in product review</text>
+    <rect x="1125" y="380" width="220" height="98" rx="10" class="physical"/>
+    <text x="1140" y="409" class="label">ESD / surge protection</text>
+    <text x="1140" y="435" class="small">Configurable 120 ohm termination</text>
+    <rect x="1360" y="380" width="200" height="98" rx="10" class="physical"/>
+    <text x="1375" y="414" class="label">Dedicated CAN-FD port</text>
+    <text x="1375" y="440" class="small">Connector form TBD</text>
+    <path d="M880 429 H895 M1110 429 H1125 M1345 429 H1360" class="wire"/>
+  </g>
 
-  <rect x="850" y="430" width="500" height="68" rx="12" class="reserved"/>
-  <text x="875" y="459" class="label">ID 4 · CAN 2.0B 2 · Reserved</text>
-  <text x="875" y="481" class="small">External Classical CAN controller + transceiver</text>
+  <g>
+    <rect x="700" y="506" width="180" height="98" rx="10" class="reserved"/>
+    <text x="715" y="535" class="label">ID 4 · CAN 2.0B 2</text>
+    <text x="715" y="559" class="small">External CAN ctrl / SPI</text>
+    <text x="715" y="580" class="small">Reserved endpoint</text>
+    <rect x="895" y="506" width="215" height="98" rx="10" class="physical"/>
+    <text x="910" y="540" class="label">Classical CAN transceiver</text>
+    <text x="910" y="566" class="small">Part selection in product review</text>
+    <rect x="1125" y="506" width="220" height="98" rx="10" class="physical"/>
+    <text x="1140" y="535" class="label">ESD / surge protection</text>
+    <text x="1140" y="561" class="small">Configurable 120 ohm termination</text>
+    <rect x="1360" y="506" width="200" height="98" rx="10" class="physical"/>
+    <text x="1375" y="540" class="label">Dedicated CAN 2 port</text>
+    <text x="1375" y="566" class="small">Connector form TBD</text>
+    <path d="M880 555 H895 M1110 555 H1125 M1345 555 H1360" class="wire"/>
+  </g>
 
-  <rect x="850" y="505" width="500" height="68" rx="12" class="reserved"/>
-  <text x="875" y="534" class="label">ID 5 · CAN 2.0B 3 · Reserved</text>
-  <text x="875" y="556" class="small">External Classical CAN controller + transceiver</text>
+  <g>
+    <rect x="700" y="632" width="180" height="98" rx="10" class="reserved"/>
+    <text x="715" y="661" class="label">ID 5 · CAN 2.0B 3</text>
+    <text x="715" y="685" class="small">External CAN ctrl / SPI</text>
+    <text x="715" y="706" class="small">Reserved endpoint</text>
+    <rect x="895" y="632" width="215" height="98" rx="10" class="physical"/>
+    <text x="910" y="666" class="label">Classical CAN transceiver</text>
+    <text x="910" y="692" class="small">Part selection in product review</text>
+    <rect x="1125" y="632" width="220" height="98" rx="10" class="physical"/>
+    <text x="1140" y="661" class="label">ESD / surge protection</text>
+    <text x="1140" y="687" class="small">Configurable 120 ohm termination</text>
+    <rect x="1360" y="632" width="200" height="98" rx="10" class="physical"/>
+    <text x="1375" y="666" class="label">Dedicated CAN 3 port</text>
+    <text x="1375" y="692" class="small">Connector form TBD</text>
+    <path d="M880 681 H895 M1110 681 H1125 M1345 681 H1360" class="wire"/>
+  </g>
 
-  <rect x="850" y="580" width="500" height="68" rx="12" class="reserved"/>
-  <text x="875" y="609" class="label">ID 2 · Ethernet / W5500 · Reserved</text>
-  <text x="875" y="631" class="small">Independent network interface to the target ECU</text>
+  <g>
+    <rect x="700" y="758" width="180" height="98" rx="10" class="reserved"/>
+    <text x="715" y="787" class="label">ID 2 · Ethernet</text>
+    <text x="715" y="811" class="small">W5500 over SPI</text>
+    <text x="715" y="832" class="small">Reserved endpoint</text>
+    <rect x="895" y="758" width="215" height="98" rx="10" class="physical"/>
+    <text x="910" y="792" class="label">Ethernet magnetics</text>
+    <text x="910" y="818" class="small">Interface details TBD</text>
+    <rect x="1125" y="758" width="220" height="98" rx="10" class="physical"/>
+    <text x="1140" y="792" class="label">ESD / line protection</text>
+    <text x="1140" y="818" class="small">Layout per selected interface</text>
+    <rect x="1360" y="758" width="200" height="98" rx="10" class="physical"/>
+    <text x="1375" y="792" class="label">Ethernet port</text>
+    <text x="1375" y="818" class="small">To target ECU; connector TBD</text>
+    <path d="M880 807 H895 M1110 807 H1125 M1345 807 H1360" class="wire"/>
+  </g>
 
-  <rect x="40" y="718" width="1310" height="68" rx="12" fill="#fff1ee" stroke="#d64c4c" stroke-width="1.5"/>
-  <text x="62" y="746" class="label">No GPIO or SPI pinout is implied by this architecture diagram.</text>
-  <text x="62" y="770" class="small">Freeze physical assignments only after checking the ESP32-S3 2025-V1.4 board documents and validating concurrent throughput.</text>
+  <rect x="40" y="990" width="1520" height="132" rx="12" class="power"/>
+  <text x="64" y="1024" class="head">Product electrical and integration requirements</text>
+  <text x="64" y="1054" class="label">USB-C 5 V input → protected power tree sized for ESP32-S3, five CAN transceivers, and W5500 peak load.</text>
+  <text x="64" y="1081" class="small">Non-isolated design: CAN grounds share device ground. Assess common-mode range, ground current, fault energy, thermal limits, and simultaneous traffic before release.</text>
+  <text x="64" y="1105" class="small">Every CAN channel has a separate physical port and configurable termination; actual controller/transceiver parts, connector pinouts, SPI groups, and GPIOs remain design-review items.</text>
 </svg>
