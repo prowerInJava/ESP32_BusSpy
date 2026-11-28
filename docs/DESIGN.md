@@ -482,6 +482,9 @@ PSRAM / flash 走的是内部 SPI0/SPI1，**不占用** SPI2/SPI3，所以 3.5 �
 [ESP32-S3、MCP2518FD 与 OLED 硬件针脚说明](./HARDWARE_PINOUT.md)和
 [OLED 接线说明](./OLED接线说明.md)。屏幕控制器与当前 I2C 地址仍需上电扫描/核对后再确定固件驱动。
 
+**后续扩展目标：双 CAN-FD + 尽可能保留 1 路经典 CAN。** 建议第二颗 MCP2518FD 与现有器件共用 SPI 信号、独立 CS/INT；经典 CAN 使用 ESP32-S3 唯一的内置 TWAI。候选引脚及双路 SPI 吞吐验证要求见
+[硬件针脚说明](./HARDWARE_PINOUT.md#面向双-can-fd-的后续预留方案)。这属于待验证的扩展规划，不代表第二路控制器或 TWAI 已接入。
+
 ### 3.5 SPI 资源分配
 
 ESP32-S3 可用通用 SPI 控制器 **2 个**（SPI2/GPSPI2、SPI3/GPSPI3），正好够：
